@@ -1,23 +1,44 @@
 ---
+import { mailerlite, mailerliteReady } from '../data/sello';
 // Bloque de captura de email (imán de lectores).
-// El `action` va vacío: conéctalo a tu plataforma (MailerLite / Kit) cuando la tengas.
-// Regla de la casa: nada se envía sin doble opt-in y sin el OK de David.
+// - Si MailerLite está configurado (ver src/data/sello.ts) → renderiza el
+//   formulario embebido real de MailerLite (maneja doble opt-in, entrega del
+//   imán y arranque de la secuencia de bienvenida desde el panel).
+// - Si no → formulario de muestra con aviso, para no romper el diseño.
 interface Props { titulo?: string; texto?: string; }
 const {
   titulo = 'El mapa, gratis',
-  texto = 'Suscríbete y recibe el imán de lectores de la serie más un email al mes con una idea útil de verdad. Sin humo, sin spam, baja cuando quieras.',
+  texto = 'Suscríbete y recibe «El detector de humo» —7 preguntas para leer la era de la IA sin que te la cuelen— más un email al mes con una idea útil de verdad. Sin humo, sin spam, baja cuando quieras.',
 } = Astro.props;
 ---
 <div class="newsletter">
   <span class="kicker">Newsletter</span>
   <h2 style="margin-top:8px">{titulo}</h2>
   <p style="color:var(--text)">{texto}</p>
-  <form action="" method="post" onsubmit="return false;">
-    <input type="email" name="email" placeholder="tu@email.com" required aria-label="Tu email" />
-    <button class="btn btn-primary" type="submit">Quiero el mapa</button>
-  </form>
-  <p class="nota">
-    ⚙️ Formulario de muestra. Conéctalo a MailerLite/Kit para que funcione (ver
-    <code>Ventas/03 - Canales/Email y lista de lectores.md</code>).
-  </p>
+
+  {mailerliteReady ? (
+    <div class="ml-embedded" data-form={mailerlite.embedFormId}></div>
+  ) : (
+    <>
+      <form action="" method="post" onsubmit="return false;">
+        <input type="email" name="email" placeholder="tu@email.com" required aria-label="Tu email" />
+        <button class="btn btn-primary" type="submit">Quiero el mapa</button>
+      </form>
+      <p class="nota">
+        ⚙️ Formulario de muestra. Conéctalo rellenando <code>accountId</code> y <code>embedFormId</code>
+        en <code>src/data/sello.ts</code> (guía: <code>Ventas/03 - Canales/MailerLite — montaje.md</code>).
+      </p>
+    </>
+  )}
 </div>
+
+{mailerliteReady && (
+  <script is:inline define:vars={{ accountId: mailerlite.accountId }}>
+    (function (w, d, e, u, f, l, n) {
+      w[f] = w[f] || function () { (w[f].q = w[f].q || []).push(arguments); };
+      l = d.createElement(e); l.async = 1; l.src = u;
+      n = d.getElementsByTagName(e)[0]; n.parentNode.insertBefore(l, n);
+    })(window, document, 'script', 'https://assets.mailerlite.com/js/universal.js', 'ml');
+    ml('account', accountId);
+  </script>
+)}

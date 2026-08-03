@@ -14,3 +14,18 @@ export const sello = {
     linkedin: '',
   },
 } as const;
+
+// ── MailerLite ──────────────────────────────────────────────────────────────
+// Rellena estos 2 valores desde tu cuenta de MailerLite y el formulario de la
+// web quedará conectado (ver la guía: /Ventas/03 - Canales/MailerLite — montaje.md).
+//  - accountId:  Integraciones → Formularios embebidos (aparece en el snippet como ml('account','XXXXXX'))
+//  - embedFormId: el id del formulario embebido que crees (data-form="XXXXXX")
+// Mientras estén vacíos, la web muestra un formulario de muestra con aviso.
+export const mailerlite = {
+  accountId: '',   // p.ej. '1234567'
+  embedFormId: '', // p.ej. '89xxxxx'
+  pdfUrl: '/detector-de-humo.pdf', // imán hospedado en la propia web
+} as const;
+
+export const mailerliteReady = Boolean(mailerlite.accountId && mailerlite.embedFormId);
+
