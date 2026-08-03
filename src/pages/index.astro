@@ -52,8 +52,30 @@ const serieLibros = libros.filter((l) => l.serie === serie1).sort((a, b) => a.nu
     </div>
   </section>
 
-  <!-- NEWSLETTER -->
+  <!-- SOBRE EL AUTOR -->
   <section class="section section-soft">
+    <div class="container">
+      <span class="kicker">Sobre el autor</span>
+      <div class="autor">
+        <img src={withBase('/autor/david-amigo.jpg')} alt="David Amigo, autor de la serie El cambio que viene"
+             width="1254" height="1254" loading="lazy" />
+        <div>
+          <h2 style="margin-bottom:0.3em">David Amigo</h2>
+          <p>
+            Dirige un restaurante de ramen y, a la vez, construye software de gestión con
+            inteligencia artificial que prueba primero en su propia cocina. <strong>El que friega
+            y el que programa.</strong> De esa doble silla nace «El cambio que viene»: cuatro libros
+            para leer la era de la IA sin perder la cabeza, con una sola regla en cada página
+            —separar lo que se sabe de lo que se supone.
+          </p>
+          <a class="btn btn-ghost" href={withBase('/libros')}>Ver todos sus libros</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- NEWSLETTER -->
+  <section class="section">
     <div class="container" style="max-width:760px">
       <Newsletter />
     </div>
