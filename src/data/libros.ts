@@ -49,7 +49,7 @@ export const libros: Libro[] = [
     estado: 'publicado',
     portada: '/portadas/foso-de-operador.jpg',
     sinopsis:
-      'Cómo construir defensibilidad real —un foso— para un negocio en la era de la inteligencia artificial, cuando la ventaja de ayer caduca a toda velocidad.',
+      '«El que ejecuta le gana al que opina.» Si diriges un negocio de verdad, estás en el lado bueno de este cambio: la fricción que arruina a las grandes consultoras —lo lento, local y sucio de encajar la IA en el mundo real— es tu terreno. Es tu foso. Un manual de campo, no de predicciones, escrito por quien friega y programa a la vez.',
     puntos: [
       'Qué protege de verdad a un negocio cuando la tecnología se abarata cada año.',
       'Dónde está el foso y dónde solo lo parece.',
@@ -67,7 +67,7 @@ export const libros: Libro[] = [
     estado: 'publicado',
     portada: '/portadas/picos-y-palas.jpg',
     sinopsis:
-      'Dónde se concentra de verdad el valor y el riesgo en la fiebre del oro de la IA. No es consejo de inversión: es aprender a leer el mapa.',
+      'En una fiebre del oro, la apuesta fiable no es el oro: son los picos y las palas. Este libro parte de un susto real —descubrir que tu fondo «diversificado» es, sin saberlo, una apuesta directa a la IA— y te enseña a leer dónde están el valor y el riesgo. No es consejo de inversión: es el mapa para decidir tú, con la cabeza fría.',
     puntos: [
       'Quién gana de verdad en una fiebre del oro (y no siempre es quien busca oro).',
       'Cómo separar la narrativa de mercado de los números.',
@@ -85,7 +85,7 @@ export const libros: Libro[] = [
     estado: 'publicado',
     portada: '/portadas/la-prima-de-lo-humano.jpg',
     sinopsis:
-      'Qué le queda —y qué vale más— al humano cuando la máquina lo hace casi todo. El cierre de la serie.',
+      'Dos personas, la misma máquina en el bolsillo. Una se dejó llevar; la otra decidió que hay cosas que no delega. La diferencia no la decide la tecnología: la decides tú. Cuando la máquina lo hace casi todo, lo que solo aporta un humano —criterio, atención, vínculo, sentido— no baja de precio: sube. El cierre de la serie.',
     puntos: [
       'Dónde sube la prima de lo humano y dónde se hunde.',
       'Las capacidades que la máquina no sustituye (todavía).',
