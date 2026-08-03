@@ -22,8 +22,8 @@ export const sello = {
 //  - embedFormId: el id del formulario embebido que crees (data-form="XXXXXX")
 // Mientras estén vacíos, la web muestra un formulario de muestra con aviso.
 export const mailerlite = {
-  accountId: '',   // p.ej. '1234567'
-  embedFormId: '', // p.ej. '89xxxxx'
+  accountId: '2553830',      // cuenta MailerLite de David
+  embedFormId: 'q80X1k',     // formulario «Web — El detector de humo» → grupo «El cambio que viene»
   pdfUrl: '/detector-de-humo.pdf', // imán hospedado en la propia web
 } as const;
 
