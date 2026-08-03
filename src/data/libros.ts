@@ -35,11 +35,9 @@ export const libros: Libro[] = [
       'Qué pasa de verdad con el trabajo, el dinero, el poder y la energía cuando se aparta el ruido.',
       'Cómo usar la máquina como copiloto y no como piloto automático.',
     ],
-    amazon: '', // TODO: enlace de Amazon con el ASIN
+    amazon: 'https://www.amazon.es/dp/B0HCNY9NC6', // ASIN Kindle
     precios: [
-      { formato: 'eBook Kindle', precio: '4,99 €' },
-      { formato: 'Tapa blanda', precio: '9,99 €' },
-      { formato: 'Tapa dura', precio: '15,99 €' },
+      { formato: 'eBook Kindle', precio: '4,32 €' },
     ],
   },
   {
@@ -48,7 +46,7 @@ export const libros: Libro[] = [
     subtitulo: 'Modo manual para el que dirige un negocio en la era de la IA',
     serie: serie1,
     numero: 2,
-    estado: 'proximamente',
+    estado: 'publicado',
     portada: '/portadas/foso-de-operador.jpg',
     sinopsis:
       'Cómo construir defensibilidad real —un foso— para un negocio en la era de la inteligencia artificial, cuando la ventaja de ayer caduca a toda velocidad.',
@@ -57,6 +55,8 @@ export const libros: Libro[] = [
       'Dónde está el foso y dónde solo lo parece.',
       'Decisiones de operador con la cabeza fría, sin modas.',
     ],
+    amazon: 'https://www.amazon.es/dp/B0HCR7RTRL',
+    precios: [{ formato: 'eBook Kindle', precio: '4,99 €' }],
   },
   {
     slug: 'picos-y-palas',
@@ -64,7 +64,7 @@ export const libros: Libro[] = [
     subtitulo: 'Modo manual para tu dinero en la era de la IA',
     serie: serie1,
     numero: 3,
-    estado: 'proximamente',
+    estado: 'publicado',
     portada: '/portadas/picos-y-palas.jpg',
     sinopsis:
       'Dónde se concentra de verdad el valor y el riesgo en la fiebre del oro de la IA. No es consejo de inversión: es aprender a leer el mapa.',
@@ -73,6 +73,8 @@ export const libros: Libro[] = [
       'Cómo separar la narrativa de mercado de los números.',
       'Leer el riesgo antes de que te lo cuenten.',
     ],
+    amazon: 'https://www.amazon.es/dp/B0HCR35XP2',
+    precios: [{ formato: 'eBook Kindle', precio: '4,99 €' }],
   },
   {
     slug: 'la-prima-de-lo-humano',
@@ -80,7 +82,7 @@ export const libros: Libro[] = [
     subtitulo: 'Modo manual para no dejar de ser humano en la era de la IA',
     serie: serie1,
     numero: 4,
-    estado: 'proximamente',
+    estado: 'publicado',
     portada: '/portadas/la-prima-de-lo-humano.jpg',
     sinopsis:
       'Qué le queda —y qué vale más— al humano cuando la máquina lo hace casi todo. El cierre de la serie.',
@@ -89,6 +91,8 @@ export const libros: Libro[] = [
       'Las capacidades que la máquina no sustituye (todavía).',
       'Cómo protegerlas sin nostalgia ni negacionismo.',
     ],
+    amazon: 'https://www.amazon.es/dp/B0HCRCVXGN',
+    precios: [{ formato: 'eBook Kindle', precio: '4,99 €' }],
   },
 ];
 
