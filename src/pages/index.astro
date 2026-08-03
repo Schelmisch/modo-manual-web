@@ -2,9 +2,9 @@
 import Base from '../layouts/Base.astro';
 import LibroCard from '../components/LibroCard.astro';
 import Newsletter from '../components/Newsletter.astro';
-import { libros, serie1 } from '../data/libros';
+import { libros, series } from '../data/libros';
 import { withBase } from '../lib/url';
-const serieLibros = libros.filter((l) => l.serie === serie1).sort((a, b) => a.numero - b.numero);
+const porSerie = (nombre: string) => libros.filter((l) => l.serie === nombre).sort((a, b) => a.numero - b.numero);
 ---
 <Base>
   <!-- HERO -->
@@ -23,21 +23,19 @@ const serieLibros = libros.filter((l) => l.serie === serie1).sort((a, b) => a.nu
     </div>
   </section>
 
-  <!-- SERIE -->
-  <section class="section section-soft">
-    <div class="container">
-      <span class="kicker">La serie</span>
-      <h2>{serie1}</h2>
-      <p style="max-width:640px">
-        Cuatro libros para leer la era de la inteligencia artificial sin perder la cabeza:
-        el marco general, el negocio, el dinero y lo que le queda al humano. Empieza por el primero;
-        cada uno abre el siguiente.
-      </p>
-      <div class="grid-libros" style="margin-top:32px">
-        {serieLibros.map((libro) => <LibroCard libro={libro} />)}
+  <!-- SERIES -->
+  {series.map((s, i) => (
+    <section class={i % 2 === 0 ? 'section section-soft' : 'section'}>
+      <div class="container">
+        <span class="kicker">{i === 0 ? 'La serie' : 'Otra serie'}</span>
+        <h2>{s.nombre}</h2>
+        <p style="max-width:640px">{s.descripcion}</p>
+        <div class="grid-libros" style="margin-top:32px">
+          {porSerie(s.nombre).map((libro) => <LibroCard libro={libro} />)}
+        </div>
       </div>
-    </div>
-  </section>
+    </section>
+  ))}
 
   <!-- PROMESA -->
   <section class="section">

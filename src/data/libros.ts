@@ -16,6 +16,21 @@ export type Libro = {
 };
 
 export const serie1 = 'El cambio que viene';
+export const serie2 = 'Sin humo';
+
+// Metadatos de cada serie (para las secciones de la web).
+export const series = [
+  {
+    nombre: serie1,
+    descripcion:
+      'Cuatro libros para leer la era de la inteligencia artificial sin perder la cabeza: el marco general, el negocio, el dinero y lo que le queda al humano. Empieza por el primero; cada uno abre el siguiente.',
+  },
+  {
+    nombre: serie2,
+    descripcion:
+      'Finanzas, negocio e inversión sin gurús ni postureo, con una regla en cada página: separar lo que funciona de lo que te venden. De la deuda a la libertad, paso a paso. (Próximamente.)',
+  },
+];
 
 export const libros: Libro[] = [
   {
@@ -93,6 +108,89 @@ export const libros: Libro[] = [
     ],
     amazon: 'https://www.amazon.es/dp/B0HCRCVXGN',
     precios: [{ formato: 'eBook Kindle', precio: '4,99 €' }],
+  },
+
+  // ── Serie «Sin humo» (finanzas / negocio / inversión) — próximamente ──
+  {
+    slug: 'de-cero-a-libre',
+    titulo: 'De cero a libre',
+    subtitulo: 'Modo manual para construir libertad financiera desde la deuda, sin atajos ni humo',
+    serie: serie2,
+    numero: 1,
+    estado: 'proximamente',
+    ancla: true,
+    portada: '/portadas/de-cero-a-libre.jpg',
+    sinopsis:
+      'Este libro no va de trabajar más: va justo de lo contrario. Con un sueldo normal, solo ahorrando, no vas a hacerte libre. El viaje entero cabe en una línea —de cobrar un sueldo, a facturar, a que tu dinero facture por ti— con una sola regla: separar lo que funciona de lo que te venden.',
+    puntos: [
+      'Los tres escalones del dinero y por qué solo el sueldo no basta.',
+      'La brújula: el valor está en el tiempo, no en facturar más.',
+      'Sin recetas de talla única: cambia según de dónde partas.',
+    ],
+  },
+  {
+    slug: 'el-primer-negocio',
+    titulo: 'El primer negocio',
+    subtitulo: 'Comprar o montar el negocio que te da tiempo, sin humo',
+    serie: serie2,
+    numero: 2,
+    estado: 'proximamente',
+    portada: '/portadas/el-primer-negocio.jpg',
+    sinopsis:
+      'Salir del sueldo para siempre pasa, para casi todos, por emprender. Pero el buen negocio no es el que más factura: es el que factura y encima te deja tiempo. Un manual de campo para montar —o comprar— tu primer negocio con el criterio del tiempo.',
+    puntos: [
+      'Por qué muchas veces comprar en marcha gana a montar de cero.',
+      'El criterio del tiempo: no confundir facturar con ser libre.',
+      'Escrito por quien lo hace con dinero de verdad en juego.',
+    ],
+  },
+  {
+    slug: 'que-tu-dinero-trabaje',
+    titulo: 'Que tu dinero trabaje',
+    subtitulo: 'Invertir sin humo cuando empiezas de cero',
+    serie: serie2,
+    numero: 3,
+    estado: 'proximamente',
+    portada: '/portadas/que-tu-dinero-trabaje.jpg',
+    sinopsis:
+      '¿Nunca has invertido y todo te suena a chino o a estafa? Empieza por lo aburrido y honesto —indexar— y por la verdad que casi nadie te dice: tu fondo «global» quizá está más concentrado de lo que crees. No es consejo de inversión: es aprender a pensar tu dinero.',
+    puntos: [
+      'Indexar como default honesto, explicado desde cero.',
+      'Interés compuesto y largo plazo, sin promesas de doblar tu dinero.',
+      'La concentración oculta de tu índice mundial.',
+    ],
+  },
+  {
+    slug: 'elegir-sin-humo',
+    titulo: 'Elegir sin humo',
+    subtitulo: 'Leer cualquier inversión y dirigir tú una parte, con método',
+    serie: serie2,
+    numero: 4,
+    estado: 'proximamente',
+    portada: '/portadas/elegir-sin-humo.jpg',
+    sinopsis:
+      'El nivel 2: cuando indexar ya no te basta y quieres entender qué compras. Cómo leer cualquier activo —acciones, ETF, bonos, cripto, derivados— con método: riesgo primero, dato verificado y punto de invalidez. No es una lista de qué comprar; es la forma de leer el mapa.',
+    puntos: [
+      'Riesgo primero: saber de antemano en qué te habrías equivocado.',
+      'Leer acciones, ETF, bonos, cripto y derivados con el mismo método.',
+      'Cazar oportunidades a largo plazo sin comprar la moda ni el pánico.',
+    ],
+  },
+  {
+    slug: 'proteger-y-llegar',
+    titulo: 'Proteger y llegar',
+    subtitulo: 'Cuidar lo que ya tienes y vivir de ello',
+    serie: serie2,
+    numero: 5,
+    estado: 'proximamente',
+    portada: '/portadas/proteger-y-llegar.jpg',
+    sinopsis:
+      'Construir riqueza es media carrera; la otra media —la que casi nadie enseña— es no arruinarte cerca de la meta y aprender a vivir de lo que tienes. Riesgo de secuencia, la regla del 4% y sus límites reales, seguros, inflación en la meta y legado. El cierre de la serie.',
+    puntos: [
+      'Riesgo de secuencia: por qué el orden de los años malos importa.',
+      'La regla del 4% y sus límites, sin la parte bonita solo.',
+      'Vivir de tus inversiones sin arruinarte cerca del final.',
+    ],
   },
 ];
 
