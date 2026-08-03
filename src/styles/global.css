@@ -1,0 +1,152 @@
+/* ── Modo manual · sistema visual ───────────────────────────────
+   Paleta tomada de la portada: azul tecnológico frío (máquina) +
+   ámbar cálido (lo humano) sobre fondo casi negro. Sobrio, editorial. */
+:root {
+  --bg: #0b0d12;
+  --bg-soft: #12151c;
+  --bg-card: #161a23;
+  --border: #232838;
+  --text: #e8eaf0;
+  --text-soft: #a6adbf;
+  --text-dim: #6b7488;
+
+  --azul: #6e86f2;
+  --azul-fuerte: #3b54d6;
+  --ambar: #d99a54;
+  --ambar-fuerte: #b5772e;
+
+  --radius: 14px;
+  --maxw: 1080px;
+  --font-serif: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, 'Times New Roman', serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 18px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+.container { width: 100%; max-width: var(--maxw); margin: 0 auto; padding: 0 24px; }
+
+h1, h2, h3 { font-family: var(--font-serif); line-height: 1.15; font-weight: 700; letter-spacing: -0.01em; }
+h1 { font-size: clamp(2.1rem, 5vw, 3.4rem); margin: 0 0 0.4em; }
+h2 { font-size: clamp(1.5rem, 3.5vw, 2.1rem); margin: 0 0 0.6em; }
+h3 { font-size: 1.25rem; margin: 0 0 0.4em; }
+
+p { margin: 0 0 1em; color: var(--text-soft); }
+a { color: var(--azul); text-decoration: none; }
+a:hover { color: #93a6ff; }
+
+.kicker {
+  font-family: var(--font-sans);
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--ambar);
+}
+
+.lede { font-size: 1.2rem; color: var(--text); }
+
+/* Botones */
+.btn {
+  display: inline-block;
+  padding: 0.8em 1.4em;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.98rem;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: transform 0.12s ease, background 0.2s ease, border-color 0.2s ease;
+}
+.btn:hover { transform: translateY(-1px); }
+.btn-primary { background: linear-gradient(135deg, var(--ambar), var(--ambar-fuerte)); color: #1a1206; }
+.btn-primary:hover { color: #1a1206; }
+.btn-ghost { border-color: var(--border); color: var(--text); background: transparent; }
+.btn-ghost:hover { border-color: var(--azul); color: var(--text); }
+
+/* Secciones */
+.section { padding: 72px 0; }
+.section-soft { background: var(--bg-soft); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+
+/* Tarjetas de libro */
+.grid-libros { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 28px; }
+.libro-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.15s ease, border-color 0.2s ease;
+}
+.libro-card:hover { transform: translateY(-4px); border-color: var(--azul); }
+.libro-card img { width: 100%; height: auto; aspect-ratio: 2/3; object-fit: cover; display: block; background: var(--bg-soft); }
+.libro-card .card-body { padding: 16px 18px 20px; }
+.libro-card h3 { margin: 0 0 4px; font-size: 1.15rem; }
+.libro-card .sub { font-size: 0.85rem; color: var(--text-dim); font-family: var(--font-sans); }
+.badge {
+  display: inline-block; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase; padding: 3px 9px; border-radius: 999px; margin-bottom: 10px;
+}
+.badge-ancla { background: rgba(217,154,84,0.15); color: var(--ambar); border: 1px solid rgba(217,154,84,0.35); }
+.badge-pronto { background: rgba(110,134,242,0.12); color: var(--azul); border: 1px solid rgba(110,134,242,0.3); }
+
+/* Newsletter / imán */
+.newsletter {
+  background: linear-gradient(135deg, rgba(59,84,214,0.14), rgba(217,154,84,0.10));
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 40px;
+}
+.newsletter form { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
+.newsletter input[type=email] {
+  flex: 1 1 260px; padding: 0.85em 1.1em; border-radius: 999px;
+  border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 1rem;
+}
+.newsletter input[type=email]:focus { outline: none; border-color: var(--azul); }
+.nota { font-size: 0.82rem; color: var(--text-dim); margin-top: 12px; }
+
+/* Prosa (blog / legal) */
+.prose { max-width: 720px; }
+.prose h2 { margin-top: 1.6em; }
+.prose p, .prose li { color: var(--text-soft); }
+.prose blockquote {
+  border-left: 3px solid var(--ambar); margin: 1.4em 0; padding: 0.2em 0 0.2em 1.1em;
+  color: var(--text); font-style: italic;
+}
+.prose code { background: var(--bg-soft); padding: 0.1em 0.4em; border-radius: 6px; font-size: 0.9em; }
+
+/* Cabecera / pie */
+.site-header {
+  position: sticky; top: 0; z-index: 20;
+  background: rgba(11,13,18,0.82); backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border);
+}
+.site-header .bar { display: flex; align-items: center; justify-content: space-between; height: 64px; }
+.logo { font-family: var(--font-serif); font-weight: 700; font-size: 1.3rem; color: var(--text); letter-spacing: -0.01em; }
+.logo span { color: var(--ambar); }
+.nav a { color: var(--text-soft); margin-left: 22px; font-size: 0.95rem; font-family: var(--font-sans); }
+.nav a:hover { color: var(--text); }
+
+.site-footer { border-top: 1px solid var(--border); padding: 40px 0; color: var(--text-dim); font-size: 0.9rem; }
+.site-footer a { color: var(--text-soft); }
+
+.hero { padding: 96px 0 64px; }
+.hero .lema { color: var(--ambar); font-family: var(--font-serif); }
+
+@media (max-width: 640px) {
+  .nav a { margin-left: 14px; }
+  .nav a.hide-sm { display: none; }
+  .newsletter { padding: 26px; }
+  body { font-size: 17px; }
+}

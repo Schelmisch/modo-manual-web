@@ -1,0 +1,23 @@
+---
+// Bloque de captura de email (imán de lectores).
+// El `action` va vacío: conéctalo a tu plataforma (MailerLite / Kit) cuando la tengas.
+// Regla de la casa: nada se envía sin doble opt-in y sin el OK de David.
+interface Props { titulo?: string; texto?: string; }
+const {
+  titulo = 'El mapa, gratis',
+  texto = 'Suscríbete y recibe el imán de lectores de la serie más un email al mes con una idea útil de verdad. Sin humo, sin spam, baja cuando quieras.',
+} = Astro.props;
+---
+<div class="newsletter">
+  <span class="kicker">Newsletter</span>
+  <h2 style="margin-top:8px">{titulo}</h2>
+  <p style="color:var(--text)">{texto}</p>
+  <form action="" method="post" onsubmit="return false;">
+    <input type="email" name="email" placeholder="tu@email.com" required aria-label="Tu email" />
+    <button class="btn btn-primary" type="submit">Quiero el mapa</button>
+  </form>
+  <p class="nota">
+    ⚙️ Formulario de muestra. Conéctalo a MailerLite/Kit para que funcione (ver
+    <code>Ventas/03 - Canales/Email y lista de lectores.md</code>).
+  </p>
+</div>

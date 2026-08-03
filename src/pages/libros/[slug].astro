@@ -1,0 +1,80 @@
+---
+import Base from '../../layouts/Base.astro';
+import Newsletter from '../../components/Newsletter.astro';
+import { libros } from '../../data/libros';
+import { withBase } from '../../lib/url';
+
+export function getStaticPaths() {
+  return libros.map((libro) => ({ params: { slug: libro.slug }, props: { libro } }));
+}
+
+const { libro } = Astro.props;
+const otros = libros.filter((l) => l.slug !== libro.slug && l.serie === libro.serie)
+  .sort((a, b) => a.numero - b.numero);
+---
+<Base title={libro.titulo} description={libro.subtitulo}>
+  <section class="section">
+    <div class="container" style="display:grid;grid-template-columns:minmax(0,280px) 1fr;gap:48px;align-items:start">
+      <!-- Portada -->
+      <div>
+        <img src={withBase(libro.portada)} alt={`Portada de ${libro.titulo}`}
+             style="width:100%;height:auto;aspect-ratio:2/3;object-fit:cover;border-radius:12px;border:1px solid var(--border);display:block"
+             width="1500" height="2250" />
+      </div>
+
+      <!-- Ficha -->
+      <div>
+        <span class="kicker">{libro.serie} · Libro {libro.numero}</span>
+        {libro.ancla && <span class="badge badge-ancla" style="margin-left:10px">Empieza aquí</span>}
+        {libro.estado === 'proximamente' && <span class="badge badge-pronto" style="margin-left:10px">Próximamente</span>}
+        <h1 style="margin-top:12px">{libro.titulo}</h1>
+        <p class="lede">{libro.subtitulo}</p>
+        <p>{libro.sinopsis}</p>
+
+        <ul style="margin:20px 0;padding-left:20px">
+          {libro.puntos.map((p) => <li style="color:var(--text-soft);margin-bottom:8px">{p}</li>)}
+        </ul>
+
+        {libro.precios && (
+          <p style="color:var(--text-dim);font-size:0.9rem">
+            {libro.precios.map((pr) => `${pr.formato}: ${pr.precio}`).join('  ·  ')}
+          </p>
+        )}
+
+        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:20px">
+          {libro.estado === 'publicado' && libro.amazon && (
+            <a class="btn btn-primary" href={libro.amazon} target="_blank" rel="noopener">Comprar en Amazon</a>
+          )}
+          {libro.estado === 'publicado' && !libro.amazon && (
+            <span class="btn btn-primary" style="opacity:0.6;cursor:default">Enlace de Amazon (pendiente de ASIN)</span>
+          )}
+          {libro.estado === 'proximamente' && (
+            <a class="btn btn-ghost" href={withBase('/newsletter')}>Avísame cuando salga</a>
+          )}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Sigue la serie -->
+  {otros.length > 0 && (
+    <section class="section section-soft">
+      <div class="container">
+        <span class="kicker">Sigue la serie</span>
+        <h2>{libro.serie}</h2>
+        <div class="grid-libros" style="margin-top:24px">
+          {otros.map((l) => (
+            <a class="libro-card" href={withBase(`/libros/${l.slug}`)}>
+              <img src={withBase(l.portada)} alt={`Portada de ${l.titulo}`} loading="lazy" width="400" height="600" />
+              <div class="card-body"><h3>{l.titulo}</h3><div class="sub">{l.subtitulo}</div></div>
+            </a>
+          ))}
+        </div>
+      </div>
+    </section>
+  )}
+
+  <section class="section">
+    <div class="container" style="max-width:760px"><Newsletter /></div>
+  </section>
+</Base>

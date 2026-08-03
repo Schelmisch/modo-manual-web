@@ -1,0 +1,61 @@
+---
+import Base from '../layouts/Base.astro';
+import LibroCard from '../components/LibroCard.astro';
+import Newsletter from '../components/Newsletter.astro';
+import { libros, serie1 } from '../data/libros';
+import { withBase } from '../lib/url';
+const serieLibros = libros.filter((l) => l.serie === serie1).sort((a, b) => a.numero - b.numero);
+---
+<Base>
+  <!-- HERO -->
+  <section class="hero">
+    <div class="container">
+      <span class="kicker">Sello editorial</span>
+      <h1>No ficción <span class="lema">sin humo</span>.</h1>
+      <p class="lede" style="max-width:640px">
+        Datos, método y honestidad. Cero gurús, cero postureo, cero relleno.
+        Libros que tratan al lector como adulto y le devuelven el mando: el <strong>modo manual</strong>.
+      </p>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:24px">
+        <a class="btn btn-primary" href={withBase('/libros/modo-manual')}>Empieza por «Modo manual»</a>
+        <a class="btn btn-ghost" href={withBase('/libros')}>Ver todos los libros</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- SERIE -->
+  <section class="section section-soft">
+    <div class="container">
+      <span class="kicker">La serie</span>
+      <h2>{serie1}</h2>
+      <p style="max-width:640px">
+        Cuatro libros para leer la era de la inteligencia artificial sin perder la cabeza:
+        el marco general, el negocio, el dinero y lo que le queda al humano. Empieza por el primero;
+        cada uno abre el siguiente.
+      </p>
+      <div class="grid-libros" style="margin-top:32px">
+        {serieLibros.map((libro) => <LibroCard libro={libro} />)}
+      </div>
+    </div>
+  </section>
+
+  <!-- PROMESA -->
+  <section class="section">
+    <div class="container" style="max-width:760px">
+      <span class="kicker">La regla de la casa</span>
+      <h2>Separar lo que se sabe de lo que se supone</h2>
+      <p>
+        Cuando un dato está medido, lo decimos, con su fuente. Cuando es una interpretación, también.
+        Y cuando no se sabe —que pasa más de lo que a nadie le gusta reconocer—, lo decimos igual.
+        Esa honestidad no es un adorno: es la única forma de no engañarse en medio del ruido.
+      </p>
+    </div>
+  </section>
+
+  <!-- NEWSLETTER -->
+  <section class="section section-soft">
+    <div class="container" style="max-width:760px">
+      <Newsletter />
+    </div>
+  </section>
+</Base>

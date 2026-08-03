@@ -1,0 +1,20 @@
+---
+import Base from '../../layouts/Base.astro';
+import LibroCard from '../../components/LibroCard.astro';
+import { libros, serie1 } from '../../data/libros';
+const serieLibros = libros.filter((l) => l.serie === serie1).sort((a, b) => a.numero - b.numero);
+---
+<Base title="Libros" description="Catálogo del sello Modo manual. Serie «El cambio que viene»: leer la era de la IA sin perder la cabeza.">
+  <section class="section">
+    <div class="container">
+      <span class="kicker">Catálogo</span>
+      <h1>Libros</h1>
+      <p style="max-width:640px">Todo lo que publica el sello «Modo manual». Sin humo.</p>
+
+      <h2 style="margin-top:48px">{serie1}</h2>
+      <div class="grid-libros" style="margin-top:24px">
+        {serieLibros.map((libro) => <LibroCard libro={libro} />)}
+      </div>
+    </div>
+  </section>
+</Base>

@@ -1,0 +1,41 @@
+---
+import Base from '../layouts/Base.astro';
+import { sello } from '../data/sello';
+---
+<Base title="Política de privacidad" description="Política de privacidad del sello Modo manual.">
+  <section class="section">
+    <div class="container prose">
+      <h1>Política de privacidad</h1>
+      <p><em>Plantilla base conforme al RGPD. Revisar y completar antes de publicar.</em></p>
+
+      <h2>Responsable del tratamiento</h2>
+      <p>{sello.autor} — sello «Modo manual». Contacto: {sello.email}</p>
+
+      <h2>Qué datos recogemos y para qué</h2>
+      <p>
+        Si te suscribes a la newsletter, tratamos tu <strong>dirección de correo</strong> con la única
+        finalidad de enviarte el imán de lectores y los correos a los que te has suscrito. La base legal es
+        tu <strong>consentimiento</strong> (doble opt-in).
+      </p>
+
+      <h2>Conservación y derechos</h2>
+      <p>
+        Conservamos tu email mientras sigas suscrito. Puedes <strong>darte de baja</strong> en cualquier
+        momento desde el enlace de cada correo, y ejercer tus derechos de acceso, rectificación y supresión
+        escribiendo a {sello.email}.
+      </p>
+
+      <h2>Encargados de tratamiento</h2>
+      <p>
+        Usamos una plataforma de email marketing (p. ej. MailerLite / Kit) como encargada del tratamiento.
+        <span style="color:var(--text-dim)">[Indicar el proveedor final y enlazar su política.]</span>
+      </p>
+
+      <h2>Cookies</h2>
+      <p>
+        Este sitio usa las cookies estrictamente necesarias y, si se activa, analítica respetuosa con la
+        privacidad. <span style="color:var(--text-dim)">[Ajustar según la analítica que instales.]</span>
+      </p>
+    </div>
+  </section>
+</Base>

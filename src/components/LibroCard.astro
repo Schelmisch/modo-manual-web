@@ -1,0 +1,15 @@
+---
+import type { Libro } from '../data/libros';
+import { withBase } from '../lib/url';
+interface Props { libro: Libro; }
+const { libro } = Astro.props;
+---
+<a class="libro-card" href={withBase(`/libros/${libro.slug}`)}>
+  <img src={withBase(libro.portada)} alt={`Portada de ${libro.titulo}`} loading="lazy" width="400" height="600" />
+  <div class="card-body">
+    {libro.ancla && <span class="badge badge-ancla">Empieza aquí</span>}
+    {libro.estado === 'proximamente' && <span class="badge badge-pronto">Próximamente</span>}
+    <h3>{libro.titulo}</h3>
+    <div class="sub">{libro.subtitulo}</div>
+  </div>
+</a>

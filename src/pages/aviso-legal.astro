@@ -1,0 +1,43 @@
+---
+import Base from '../layouts/Base.astro';
+import { sello } from '../data/sello';
+---
+<Base title="Aviso legal" description="Aviso legal del sello Modo manual.">
+  <section class="section">
+    <div class="container prose">
+      <h1>Aviso legal</h1>
+      <p><em>Plantilla base. Revisar y completar los datos antes de publicar.</em></p>
+
+      <h2>Titular del sitio</h2>
+      <p>
+        Responsable: {sello.autor} (sello editorial «Modo manual»).<br />
+        Contacto: {sello.email}<br />
+        <span style="color:var(--text-dim)">[Completar con NIF/domicilio si corresponde según la LSSI-CE.]</span>
+      </p>
+
+      <h2>Objeto</h2>
+      <p>
+        Este sitio web tiene carácter informativo y de promoción de las obras publicadas bajo el sello
+        «Modo manual». Las compras se realizan en las plataformas de terceros (Amazon) enlazadas desde aquí.
+      </p>
+
+      <h2>Propiedad intelectual</h2>
+      <p>
+        Los textos, portadas y contenidos son propiedad de su autor salvo indicación en contrario.
+        No está permitida su reproducción sin autorización.
+      </p>
+
+      <h2>Enlaces de afiliado</h2>
+      <p>
+        Algunos enlaces a Amazon pueden ser de afiliado: si compras a través de ellos, el sello puede recibir
+        una pequeña comisión sin coste adicional para ti. <span style="color:var(--text-dim)">[Ajustar según si te das de alta en Amazon Afiliados.]</span>
+      </p>
+
+      <h2>Responsabilidad</h2>
+      <p>
+        El contenido de los libros y del blog es divulgativo y no constituye asesoramiento profesional
+        (financiero, legal ni de ningún otro tipo).
+      </p>
+    </div>
+  </section>
+</Base>

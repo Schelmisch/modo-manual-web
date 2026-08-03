@@ -1,0 +1,13 @@
+---
+import { withBase } from '../lib/url';
+---
+<header class="site-header">
+  <div class="container bar">
+    <a class="logo" href={withBase('/')}>Modo <span>manual</span></a>
+    <nav class="nav">
+      <a href={withBase('/libros')}>Libros</a>
+      <a href={withBase('/blog')} class="hide-sm">Blog</a>
+      <a href={withBase('/newsletter')}>Newsletter</a>
+    </nav>
+  </div>
+</header>

@@ -1,0 +1,28 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getCollection } from 'astro:content';
+import { withBase } from '../../lib/url';
+const posts = (await getCollection('blog', ({ data }) => !data.draft))
+  .sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime());
+const fmt = (d: Date) => d.toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
+---
+<Base title="Blog" description="Ideas para leer la era de la IA con la cabeza fría. Del sello Modo manual.">
+  <section class="section">
+    <div class="container" style="max-width:760px">
+      <span class="kicker">Blog</span>
+      <h1>Ideas sin humo</h1>
+      <p>Artículos para leer el cambio por ti mismo. Cada uno nace de un libro y lleva a él.</p>
+
+      <div style="margin-top:40px">
+        {posts.map((post) => (
+          <article style="padding:24px 0;border-top:1px solid var(--border)">
+            <div style="font-size:0.82rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.08em">{fmt(post.data.pubDate)}</div>
+            <h2 style="margin:8px 0 6px;font-size:1.5rem"><a href={withBase(`/blog/${post.id}`)}>{post.data.title}</a></h2>
+            <p>{post.data.description}</p>
+            <a href={withBase(`/blog/${post.id}`)}>Leer →</a>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+</Base>
