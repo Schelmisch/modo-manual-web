@@ -27,7 +27,7 @@ const porSerie = (nombre: string) => libros.filter((l) => l.serie === nombre).so
   {series.map((s, i) => (
     <section class={i % 2 === 0 ? 'section section-soft' : 'section'}>
       <div class="container">
-        <span class="kicker">{i === 0 ? 'La serie' : 'Otra serie'}</span>
+        <span class="kicker">{`Serie 0${i + 1}`}</span>
         <h2>{s.nombre}</h2>
         <p style="max-width:640px">{s.descripcion}</p>
         <div class="grid-libros" style="margin-top:32px">
