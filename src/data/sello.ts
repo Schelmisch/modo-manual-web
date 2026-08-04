@@ -5,9 +5,8 @@ export const sello = {
   descripcion:
     'No ficción que trata al lector como adulto: datos, método y honestidad. Cero gurús, cero postureo, cero relleno.',
   autor: 'David Amigo',
-  // Rellena cuando decidas el dominio:
-  url: 'https://modomanual.es',
-  email: 'hola@modomanual.es',
+  url: 'https://librosmodomanual.com',
+  email: 'hola@librosmodomanual.com',
   redes: {
     x: '', // p.ej. 'https://x.com/tuusuario'
     youtube: '',

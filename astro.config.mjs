@@ -2,13 +2,11 @@
 import { defineConfig } from 'astro/config';
 
 // ── CONFIGURACIÓN DE DESPLIEGUE ─────────────────────────────────────────────
-// Estado actual: GitHub Pages de proyecto → https://schelmisch.github.io/modo-manual-web/
-// Cuando compres el dominio propio, cambia a:
-//     site: 'https://TUDOMINIO',   base: '/',
-// y crea public/CNAME con el dominio (ver README). Como los enlaces usan
-// withBase()/BASE_URL, NO hay que tocar nada más: se adaptan solos.
-const SITE = 'https://schelmisch.github.io';
-const BASE = '/modo-manual-web/';
+// Dominio propio en producción: https://librosmodomanual.com
+// (DNS en Cloudflare → GitHub Pages; public/CNAME fija el dominio en cada build).
+// Los enlaces usan withBase()/BASE_URL, así que con base:'/' se sirven desde raíz.
+const SITE = 'https://librosmodomanual.com';
+const BASE = '/';
 
 // Plugin rehype: prefija con la base los enlaces internos ("/algo") que se
 // escriben en el Markdown del blog, para que no se rompan bajo subruta.
