@@ -17,9 +17,6 @@ export type Libro = {
 
 export const serie1 = 'El cambio que viene';
 export const serie2 = 'Sin humo';
-export const serie3 = 'Desclasificados';
-export const serie4 = 'Sin banderas';
-export const serie5 = 'Historia sin mitos';
 
 // Metadatos de cada serie (para las secciones de la web).
 export const series = [
@@ -32,21 +29,6 @@ export const series = [
     nombre: serie2,
     descripcion:
       'Finanzas, negocio e inversión sin gurús ni postureo, con una regla en cada página: separar lo que funciona de lo que te venden. De la deuda a la libertad, paso a paso. (Próximamente.)',
-  },
-  {
-    nombre: serie3,
-    descripcion:
-      'Coge los temas más saturados de humo que existen —OVNIs, secretos de Estado, los grandes misterios de sobremesa— y les aplica la regla de la casa: separar lo que se sabe de lo que se supone. Ni creyente ni negacionista: exigente con la evidencia, honesto con la incertidumbre. (Próximamente.)',
-  },
-  {
-    nombre: serie4,
-    descripcion:
-      'Los temas que más te encienden —inmigración, islam, hombres y mujeres— mirados con datos y sin bandera de ningún bando: la misma vara para los dos lados. Una sola idea los ordena: te hacen pelear con quien está a tu lado para que no mires hacia arriba. (Próximamente.)',
-  },
-  {
-    nombre: serie5,
-    descripcion:
-      'La historia de España con una sola regla en cada página: separar el dato del relato. Ni manual escolar ni panfleto nacional —tampoco su reverso—; solo lo que queda cuando se retira el barniz. (Próximamente.)',
   },
 ];
 
@@ -208,127 +190,6 @@ export const libros: Libro[] = [
       'Riesgo de secuencia: por qué el orden de los años malos importa.',
       'La regla del 4% y sus límites, sin la parte bonita solo.',
       'Vivir de tus inversiones sin arruinarte cerca del final.',
-    ],
-  },
-
-  // ── Serie «Desclasificados» (OVNIs, secretos de Estado, grandes misterios) — próximamente ──
-  {
-    slug: 'no-identificado',
-    titulo: 'No identificado',
-    subtitulo: 'Modo manual para leer los OVNIs y los secretos de Estado sin que te tomen el pelo',
-    serie: serie3,
-    numero: 1,
-    estado: 'proximamente',
-    ancla: true,
-    portada: '/portadas/no-identificado.jpg',
-    sinopsis:
-      'Hay dos maneras fáciles de hablar de OVNIs y secretos de Estado: creértelo todo o no creerte nada. Las dos venden lo mismo, una emoción para que dejes de pensar. Este libro coge el tema más lleno de humo que existe y te enseña a leerlo tú mismo, caso a caso, separando lo que se sabe de lo que se supone. Spoiler honesto: sí hay un misterio real y sí ocultan cosas graves, pero no lo que te venden.',
-    puntos: [
-      'Setenta años, el mismo resultado: cambia el nombre (de OVNI a UAP) pero nunca el patrón.',
-      'El caso Tic-Tac y el vídeo viral: cómo distinguir el residuo real del artefacto de un sensor.',
-      'Sí ocultan, y a veces es monstruoso —MKUltra, Northwoods—, pero es humano, no cósmico.',
-    ],
-  },
-  {
-    slug: 'nombre-en-clave',
-    titulo: 'Nombre en clave',
-    subtitulo: 'Modo manual para leer los secretos de Estado sin que te tomen el pelo',
-    serie: serie3,
-    numero: 2,
-    estado: 'proximamente',
-    portada: '/portadas/nombre-en-clave.jpg',
-    sinopsis:
-      'El expediente real da más miedo que la conspiración inventada, y a la vez más tranquilidad, porque acabó saliendo. Este libro baja del cielo a la tierra y recorre el archivo desclasificado de verdad: los programas que el Estado sí ocultó, por qué lo hizo y cómo terminaron destapándose. De MKUltra a la vigilancia masiva, cada expediente te afina un detector de humo que sirve para cualquier conspiración, no solo la de platillos.',
-    puntos: [
-      '«Lo planearon» no es «lo hacen siempre»: Northwoods se aprobó… y Kennedy lo paró.',
-      'MKUltra, Tuskegee, COINTELPRO: el crimen documentado que no necesita aliens para horrorizar.',
-      'Ningún secreto de miles de personas es eterno: tiene fecha de caducidad, no candado.',
-    ],
-  },
-  {
-    slug: 'caso-cerrado',
-    titulo: 'Caso cerrado',
-    subtitulo: 'Modo manual para leer los grandes misterios sin que te tomen el pelo',
-    serie: serie3,
-    numero: 3,
-    estado: 'proximamente',
-    portada: '/portadas/caso-cerrado.jpg',
-    sinopsis:
-      'Todos tenemos un misterio favorito: Roswell, la llegada a la Luna, el Triángulo de las Bermudas, JFK, Bob Lazar. Este libro no viene a quitártelo ni a confirmártelo: viene a enseñarte a leerlo. Un caso por capítulo, cada uno elegido por la regla que mejor enseña, separando lo documentado de lo supuesto hasta dar un veredicto. Sales con criterio propio para el próximo enigma que te cuenten.',
-    puntos: [
-      '«No identificado» no es «inexplicable»: cómo la estadística deshace el Triángulo de las Bermudas.',
-      'Cómo sabemos que la Luna no fue un plató, y cómo se detecta un documento falso.',
-      'Cuando un caso aguanta el escrutinio, se dice sin rebajarlo; cuando se cae, sin reírse de nadie.',
-    ],
-  },
-
-  // ── Serie «Sin banderas» (temas sociopolíticos con datos, sin bando) — próximamente ──
-  {
-    slug: 'inmigracion-sin-banderas',
-    titulo: 'Inmigración sin banderas',
-    subtitulo: 'Quién gana con que odies (o idealices) al de al lado',
-    serie: serie4,
-    numero: 1,
-    estado: 'proximamente',
-    ancla: true,
-    portada: '/portadas/inmigracion-sin-banderas.jpg',
-    sinopsis:
-      'Saca el tema de la inmigración en una comida familiar y cronometra cuánto tarda en calentarse: segundos. Esa facilidad para hervir no es un accidente; arde lo que a alguien le conviene que arda. Este libro no viene a decirte que la inmigración es buena ni mala —esa pregunta ya es el anzuelo—: va tema por tema, de los salarios a la vivienda, separando el dato del bulo con la misma vara para los que exageran y para los que niegan. Muerde el dato, no el anzuelo.',
-    puntos: [
-      'Dos mentiras enfrentadas y una verdad tranquila en medio: el patrón que se repite en cada tema.',
-      '¿Bajan los salarios, aportan o cuestan, delinquen más? Los números reales de España, con año y fuente.',
-      'Te hacen pelear con quien está a tu lado para que no mires hacia arriba.',
-    ],
-  },
-  {
-    slug: 'choque-de-civilizaciones',
-    titulo: 'El choque de civilizaciones',
-    subtitulo: 'La guerra que nadie está librando',
-    serie: serie4,
-    numero: 2,
-    estado: 'proximamente',
-    portada: '/portadas/choque-de-civilizaciones.jpg',
-    sinopsis:
-      'Llevas toda la vida oyendo que Occidente y el islam están en guerra de siglos, y que solo puede acabar de una manera: ellos o nosotros. Esa historia tiene hasta nombre académico —el choque de civilizaciones— y es, en gran parte, un producto: tiene quien lo fabrica, quien lo vende y quien se lo lleva. Este libro coge las piezas con las que se construye el miedo al islam —demografía, terrorismo, el velo, los barrios— y las mira una a una con la única herramienta que desactiva un relato: el dato con su fuente. Incómodo por los dos lados, a propósito.',
-    puntos: [
-      'El «gran reemplazo»: una invasión del 5% de la población, contada como profecía.',
-      'Las no-go zones y el velo: separar la fricción real de valores del bulo que la infla.',
-      'La palanca es el contexto, no la fe: lo que radicaliza o integra casi nunca es lo que la gente reza.',
-    ],
-  },
-  {
-    slug: 'guerra-de-sexos',
-    titulo: 'La guerra de sexos',
-    subtitulo: 'Quién gana con que hombres y mujeres se declaren la guerra',
-    serie: serie4,
-    numero: 3,
-    estado: 'proximamente',
-    portada: '/portadas/guerra-de-sexos.jpg',
-    sinopsis:
-      'La guerra de sexos se libra en sitios muy pequeños: una cocina a las diez de la noche, un grupo de WhatsApp del trabajo, la habitación de un adolescente con el móvil en la mano. Y tiene una particularidad: el enemigo que te asignan es tu pareja, tu madre, tu hijo. Este libro va de quién gana con que hombres y mujeres —que se enamoran, crían y trabajan juntos— se convenzan de que son adversarios, desmontando los bulos de los dos lados con la misma vara. Con una línea roja innegociable: la violencia machista es real, grave y desigual, y no entra en ninguna balanza.',
-    puntos: [
-      '¿De qué cifra hablamos? Una brecha salarial que es del 16% o del 9% según cómo la midas.',
-      'El bulo de las denuncias falsas masivas frente al dato oficial: son ínfimas.',
-      'La misma vara para los bulos de los dos lados; nunca para un daño real y asimétrico.',
-    ],
-  },
-
-  // ── Serie «Historia sin mitos» (historia de España, separar el dato del relato) — próximamente ──
-  {
-    slug: 'al-andalus',
-    titulo: 'Al-Ándalus sin mitos',
-    subtitulo: 'Ni paraíso de tolerancia ni pura ocupación: ocho siglos, separando el dato del relato',
-    serie: serie5,
-    numero: 1,
-    estado: 'proximamente',
-    ancla: true,
-    portada: '/portadas/al-andalus.jpg',
-    sinopsis:
-      'Para unos, Al-Ándalus fue un paraíso de tolerancia del que Europa lo aprendió todo; para otros, ocho siglos de ocupación que lamentar. Las dos versiones circulan con la seguridad de quien no ha mirado las fuentes. Este libro recorre el arco completo, de 711 a 1492, desinflando la leyenda sin empequeñecer el hecho. No saldrás con munición para una discusión de sobremesa: saldrás sabiendo leer cualquier historia que te llegue demasiado redonda.',
-    puntos: [
-      'El millón de habitantes de Córdoba que nadie contó: desinflar la cifra sin empequeñecer la ciudad.',
-      'La convivencia de las tres culturas, sin la postal ni el panfleto: qué significaba de verdad.',
-      'El Cid, un héroe que también sirvió al enemigo: la frontera como mezcla, no como muro.',
     ],
   },
 ];
