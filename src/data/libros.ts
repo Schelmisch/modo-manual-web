@@ -56,9 +56,11 @@ export const libros: Libro[] = [
       'Qué pasa de verdad con el trabajo, el dinero, el poder y la energía cuando se aparta el ruido.',
       'Cómo usar la máquina como copiloto y no como piloto automático.',
     ],
-    amazon: 'https://www.amazon.es/dp/B0HCNY9NC6', // ASIN Kindle
+    amazon: 'https://www.amazon.es/dp/B0HCNY9NC6', // ASIN Kindle (los 3 formatos enlazados en la misma ficha)
     precios: [
-      { formato: 'eBook Kindle', precio: '4,32 €' },
+      { formato: 'eBook Kindle', precio: '4,99 €' },
+      { formato: 'Tapa blanda', precio: '9,99 €' },
+      { formato: 'Tapa dura', precio: '15,99 €' },
     ],
   },
   {
@@ -76,8 +78,12 @@ export const libros: Libro[] = [
       'Dónde está el foso y dónde solo lo parece.',
       'Decisiones de operador con la cabeza fría, sin modas.',
     ],
-    amazon: 'https://www.amazon.es/dp/B0HCR7RTRL',
-    precios: [{ formato: 'eBook Kindle', precio: '4,99 €' }],
+    amazon: 'https://www.amazon.es/dp/B0HCR7RTRL', // los 3 formatos enlazados en la misma ficha
+    precios: [
+      { formato: 'eBook Kindle', precio: '4,99 €' },
+      { formato: 'Tapa blanda', precio: '9,99 €' },
+      { formato: 'Tapa dura', precio: '15,99 €' },
+    ],
   },
   {
     slug: 'picos-y-palas',
@@ -94,8 +100,12 @@ export const libros: Libro[] = [
       'Cómo separar la narrativa de mercado de los números.',
       'Leer el riesgo antes de que te lo cuenten.',
     ],
-    amazon: 'https://www.amazon.es/dp/B0HCR35XP2',
-    precios: [{ formato: 'eBook Kindle', precio: '4,99 €' }],
+    amazon: 'https://www.amazon.es/dp/B0HCR35XP2', // los 3 formatos enlazados en la misma ficha
+    precios: [
+      { formato: 'eBook Kindle', precio: '4,99 €' },
+      { formato: 'Tapa blanda', precio: '9,99 €' },
+      { formato: 'Tapa dura', precio: '15,99 €' },
+    ],
   },
   {
     slug: 'la-prima-de-lo-humano',
@@ -112,8 +122,12 @@ export const libros: Libro[] = [
       'Las capacidades que la máquina no sustituye (todavía).',
       'Cómo protegerlas sin nostalgia ni negacionismo.',
     ],
-    amazon: 'https://www.amazon.es/dp/B0HCRCVXGN',
-    precios: [{ formato: 'eBook Kindle', precio: '4,99 €' }],
+    amazon: 'https://www.amazon.es/dp/B0HCRCVXGN', // los 3 formatos enlazados en la misma ficha
+    precios: [
+      { formato: 'eBook Kindle', precio: '4,99 €' },
+      { formato: 'Tapa blanda', precio: '9,99 €' },
+      { formato: 'Tapa dura', precio: '15,99 €' },
+    ],
   },
 
   // ── Serie «Sin humo» (finanzas / negocio / inversión) — próximamente ──
