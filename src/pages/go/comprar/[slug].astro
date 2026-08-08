@@ -2,6 +2,7 @@
 import { libros } from '../../../data/libros';
 import { sello, analytics } from '../../../data/sello';
 import { withBase } from '../../../lib/url';
+import { amazonUrl } from '../../../lib/amazon';
 
 // Página puente para medir clics en «Comprar en Amazon» con Cloudflare Web
 // Analytics (que solo cuenta páginas vistas): al cargarse dispara el beacon y
@@ -13,7 +14,7 @@ export function getStaticPaths() {
     .map((l) => ({ params: { slug: l.slug }, props: { libro: l } }));
 }
 const { libro } = Astro.props;
-const dest = libro.amazon;
+const dest = amazonUrl(libro.amazon);
 ---
 <!doctype html>
 <html lang="es">

@@ -1,5 +1,5 @@
 ---
-import { sello } from '../data/sello';
+import { sello, afiliados } from '../data/sello';
 import { withBase } from '../lib/url';
 const year = 2026;
 ---
@@ -15,6 +15,12 @@ const year = 2026;
       · <a href={withBase('/rss.xml')}>RSS</a>
       · <a href={withBase('/aviso-legal')}>Aviso legal</a> · <a href={withBase('/privacidad')}>Privacidad</a>
     </p>
+    {afiliados.amazonTag && (
+      <p style="margin-top:16px;color:var(--text-dim);font-size:0.82rem">
+        Como Afiliado de Amazon, el sello obtiene ingresos por las compras adscritas que cumplen los requisitos.
+        No cambia el precio que pagas.
+      </p>
+    )}
     <p style="margin-top:16px;color:var(--text-dim)">© {year} {sello.autor} · Sello Modo manual</p>
   </div>
 </footer>

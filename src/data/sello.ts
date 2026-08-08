@@ -24,6 +24,16 @@ export const analytics = {
   cloudflareToken: '1c368ba29f924b7fb32ec2ab74578cf9', // Cloudflare Web Analytics (beacon)
 } as const;
 
+// ── Amazon Afiliados ─────────────────────────────────────────────────────────
+// Tag de Amazon Afiliados (Amazon.es), formato 'algo-21'. Al rellenarlo, todos
+// los enlaces de compra añaden ?tag=... (comisión + atribución real de ventas)
+// y se muestra la nota de afiliado obligatoria en el pie. Vacío = enlaces
+// normales de Amazon, sin nota. Se saca en https://afiliados.amazon.es
+// (Panel → Herramientas / tu ID de rastreo).
+export const afiliados = {
+  amazonTag: '', // p.ej. 'modomanual-21'
+} as const;
+
 // ── MailerLite ──────────────────────────────────────────────────────────────
 // Rellena estos 2 valores desde tu cuenta de MailerLite y el formulario de la
 // web quedará conectado (ver la guía: /Ventas/03 - Canales/MailerLite — montaje.md).
