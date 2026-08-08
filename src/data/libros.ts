@@ -29,12 +29,12 @@ export const series = [
   {
     nombre: serie2,
     descripcion:
-      'Finanzas, negocio e inversión sin gurús ni postureo, con una regla en cada página: separar lo que funciona de lo que te venden. De la deuda a la libertad, paso a paso. (Próximamente.)',
+      'Finanzas, negocio e inversión sin gurús ni postureo, con una regla en cada página: separar lo que funciona de lo que te venden. De la deuda a la libertad, paso a paso. Los cinco, ya a la venta.',
   },
   {
     nombre: serie3,
     descripcion:
-      'Salud sin milagros ni pánicos: comida, ejercicio, sueño y longevidad separando lo poco que de verdad mueve la aguja del humo que lo tapa, con dato y fuente y sin culpa. Un detector de humos para tu cuerpo. (Próximamente.)',
+      'Salud sin milagros ni pánicos: comida, ejercicio, sueño y longevidad separando lo poco que de verdad mueve la aguja del humo que lo tapa, con dato y fuente y sin culpa. Un detector de humos para tu cuerpo. Los dos primeros, ya a la venta.',
   },
 ];
 
@@ -59,8 +59,8 @@ export const libros: Libro[] = [
     amazon: 'https://www.amazon.es/dp/B0HCNY9NC6', // ASIN Kindle (los 3 formatos enlazados en la misma ficha)
     precios: [
       { formato: 'eBook Kindle', precio: '4,99 €' },
-      { formato: 'Tapa blanda', precio: '9,99 €' },
-      { formato: 'Tapa dura', precio: '15,99 €' },
+      { formato: 'Tapa blanda', precio: '10,39 €' },
+      { formato: 'Tapa dura', precio: '16,63 €' },
     ],
   },
   {
@@ -81,8 +81,8 @@ export const libros: Libro[] = [
     amazon: 'https://www.amazon.es/dp/B0HCR7RTRL', // los 3 formatos enlazados en la misma ficha
     precios: [
       { formato: 'eBook Kindle', precio: '4,99 €' },
-      { formato: 'Tapa blanda', precio: '9,99 €' },
-      { formato: 'Tapa dura', precio: '15,99 €' },
+      { formato: 'Tapa blanda', precio: '10,39 €' },
+      { formato: 'Tapa dura', precio: '16,63 €' },
     ],
   },
   {
@@ -103,8 +103,8 @@ export const libros: Libro[] = [
     amazon: 'https://www.amazon.es/dp/B0HCR35XP2', // los 3 formatos enlazados en la misma ficha
     precios: [
       { formato: 'eBook Kindle', precio: '4,99 €' },
-      { formato: 'Tapa blanda', precio: '9,99 €' },
-      { formato: 'Tapa dura', precio: '15,99 €' },
+      { formato: 'Tapa blanda', precio: '10,39 €' },
+      { formato: 'Tapa dura', precio: '16,63 €' },
     ],
   },
   {
@@ -125,19 +125,19 @@ export const libros: Libro[] = [
     amazon: 'https://www.amazon.es/dp/B0HCRCVXGN', // los 3 formatos enlazados en la misma ficha
     precios: [
       { formato: 'eBook Kindle', precio: '4,99 €' },
-      { formato: 'Tapa blanda', precio: '9,99 €' },
-      { formato: 'Tapa dura', precio: '15,99 €' },
+      { formato: 'Tapa blanda', precio: '10,39 €' },
+      { formato: 'Tapa dura', precio: '16,63 €' },
     ],
   },
 
-  // ── Serie «Sin humo» (finanzas / negocio / inversión) — próximamente ──
+  // ── Serie «Sin humo» (finanzas / negocio / inversión) — publicada ──
   {
     slug: 'de-cero-a-libre',
     titulo: 'De cero a libre',
     subtitulo: 'Modo manual para construir libertad financiera desde la deuda, sin atajos ni humo',
     serie: serie2,
     numero: 1,
-    estado: 'proximamente',
+    estado: 'publicado',
     ancla: true,
     portada: '/portadas/de-cero-a-libre.jpg',
     sinopsis:
@@ -147,6 +147,11 @@ export const libros: Libro[] = [
       'La brújula: el valor está en el tiempo, no en facturar más.',
       'Sin recetas de talla única: cambia según de dónde partas.',
     ],
+    amazon: 'https://www.amazon.es/dp/B0HDGHJGFF', // Kindle; formatos enlazados en la misma ficha
+    precios: [
+      { formato: 'eBook Kindle', precio: '4,99 €' },
+      { formato: 'Tapa dura', precio: '16,63 €' },
+    ],
   },
   {
     slug: 'el-primer-negocio',
@@ -154,7 +159,7 @@ export const libros: Libro[] = [
     subtitulo: 'Comprar o montar el negocio que te da tiempo, sin humo',
     serie: serie2,
     numero: 2,
-    estado: 'proximamente',
+    estado: 'publicado',
     portada: '/portadas/el-primer-negocio.jpg',
     sinopsis:
       'Salir del sueldo para siempre pasa, para casi todos, por emprender. Pero el buen negocio no es el que más factura: es el que factura y encima te deja tiempo. Un manual de campo para montar —o comprar— tu primer negocio con el criterio del tiempo.',
@@ -163,6 +168,12 @@ export const libros: Libro[] = [
       'El criterio del tiempo: no confundir facturar con ser libre.',
       'Escrito por quien lo hace con dinero de verdad en juego.',
     ],
+    amazon: 'https://www.amazon.es/dp/B0HDG21WBW', // Kindle; formatos enlazados en la misma ficha
+    precios: [
+      { formato: 'eBook Kindle', precio: '4,99 €' },
+      { formato: 'Tapa blanda', precio: '10,39 €' },
+      { formato: 'Tapa dura', precio: '16,63 €' },
+    ],
   },
   {
     slug: 'que-tu-dinero-trabaje',
@@ -170,7 +181,7 @@ export const libros: Libro[] = [
     subtitulo: 'Invertir sin humo cuando empiezas de cero',
     serie: serie2,
     numero: 3,
-    estado: 'proximamente',
+    estado: 'publicado',
     portada: '/portadas/que-tu-dinero-trabaje.jpg',
     sinopsis:
       '¿Nunca has invertido y todo te suena a chino o a estafa? Empieza por lo aburrido y honesto —indexar— y por la verdad que casi nadie te dice: tu fondo «global» quizá está más concentrado de lo que crees. No es consejo de inversión: es aprender a pensar tu dinero.',
@@ -179,6 +190,12 @@ export const libros: Libro[] = [
       'Interés compuesto y largo plazo, sin promesas de doblar tu dinero.',
       'La concentración oculta de tu índice mundial.',
     ],
+    amazon: 'https://www.amazon.es/dp/B0HDGLY9YM', // Kindle; formatos enlazados en la misma ficha
+    precios: [
+      { formato: 'eBook Kindle', precio: '4,99 €' },
+      { formato: 'Tapa blanda', precio: '10,39 €' },
+      { formato: 'Tapa dura', precio: '16,63 €' },
+    ],
   },
   {
     slug: 'elegir-sin-humo',
@@ -186,7 +203,7 @@ export const libros: Libro[] = [
     subtitulo: 'Leer cualquier inversión y dirigir tú una parte, con método',
     serie: serie2,
     numero: 4,
-    estado: 'proximamente',
+    estado: 'publicado',
     portada: '/portadas/elegir-sin-humo.jpg',
     sinopsis:
       'El nivel 2: cuando indexar ya no te basta y quieres entender qué compras. Cómo leer cualquier activo —acciones, ETF, bonos, cripto, derivados— con método: riesgo primero, dato verificado y punto de invalidez. No es una lista de qué comprar; es la forma de leer el mapa.',
@@ -195,6 +212,12 @@ export const libros: Libro[] = [
       'Leer acciones, ETF, bonos, cripto y derivados con el mismo método.',
       'Cazar oportunidades a largo plazo sin comprar la moda ni el pánico.',
     ],
+    amazon: 'https://www.amazon.es/dp/B0HDFLKC68', // Kindle; formatos enlazados en la misma ficha
+    precios: [
+      { formato: 'eBook Kindle', precio: '4,99 €' },
+      { formato: 'Tapa blanda', precio: '10,39 €' },
+      { formato: 'Tapa dura', precio: '16,63 €' },
+    ],
   },
   {
     slug: 'proteger-y-llegar',
@@ -202,7 +225,7 @@ export const libros: Libro[] = [
     subtitulo: 'Cuidar lo que ya tienes y vivir de ello',
     serie: serie2,
     numero: 5,
-    estado: 'proximamente',
+    estado: 'publicado',
     portada: '/portadas/proteger-y-llegar.jpg',
     sinopsis:
       'Construir riqueza es media carrera; la otra media —la que casi nadie enseña— es no arruinarte cerca de la meta y aprender a vivir de lo que tienes. Riesgo de secuencia, la regla del 4% y sus límites reales, seguros, inflación en la meta y legado. El cierre de la serie.',
@@ -211,16 +234,22 @@ export const libros: Libro[] = [
       'La regla del 4% y sus límites, sin la parte bonita solo.',
       'Vivir de tus inversiones sin arruinarte cerca del final.',
     ],
+    amazon: 'https://www.amazon.es/dp/B0HDGCN9Q8', // Kindle; formatos enlazados en la misma ficha
+    precios: [
+      { formato: 'eBook Kindle', precio: '4,99 €' },
+      { formato: 'Tapa blanda', precio: '10,39 €' },
+      { formato: 'Tapa dura', precio: '16,63 €' },
+    ],
   },
 
-  // ── Serie «A ciencia cierta» (salud / ciencia) — próximamente ──
+  // ── Serie «A ciencia cierta» (salud / ciencia) — libros 1 y 2 publicados; 3-5 próximamente ──
   {
     slug: 'comes-lo-que-te-cuentan',
     titulo: 'Comes lo que te cuentan',
     subtitulo: 'Nutrición sin milagros ni pánicos: lo que de verdad mueve la aguja de tu plato',
     serie: serie3,
     numero: 1,
-    estado: 'proximamente',
+    estado: 'publicado',
     ancla: true,
     portada: '/portadas/comes-lo-que-te-cuentan.jpg',
     sinopsis:
@@ -230,6 +259,12 @@ export const libros: Libro[] = [
       'Dieta milagro, superalimento y detox: por qué venden tanto y sirven tan poco.',
       'Comer con criterio, sin culpa ni sermón, con dato y fuente.',
     ],
+    amazon: 'https://www.amazon.es/dp/B0HDFRQC9L', // Kindle; formatos enlazados en la misma ficha
+    precios: [
+      { formato: 'eBook Kindle', precio: '4,99 €' },
+      { formato: 'Tapa blanda', precio: '10,39 €' },
+      { formato: 'Tapa dura', precio: '16,63 €' },
+    ],
   },
   {
     slug: 'mover-el-esqueleto',
@@ -237,7 +272,7 @@ export const libros: Libro[] = [
     subtitulo: 'Ejercicio y músculo sin mitos: lo poco que de verdad te hace fuerte y te mantiene sano',
     serie: serie3,
     numero: 2,
-    estado: 'proximamente',
+    estado: 'publicado',
     portada: '/portadas/mover-el-esqueleto.jpg',
     sinopsis:
       'La industria del fitness vive de que creas que moverte es complicado, caro y agotador: máquinas, gadgets, suplementos y rutinas imposibles. Este libro separa lo que de verdad mueve la aguja —fuerza, moverte a diario, la dosis mínima eficaz— del humo que lo tapa, con dato y fuente y sin culpa. No es un plan de gimnasio: es entender qué le pasa a tu cuerpo cuando lo mueves.',
@@ -245,6 +280,11 @@ export const libros: Libro[] = [
       'Fuerza y dosis mínima eficaz: lo poco que de verdad funciona.',
       'Máquinas, gadgets y zonas quema-grasa: el humo que puedes soltar.',
       'Por dónde empezar sin gimnasio ni rutinas imposibles.',
+    ],
+    amazon: 'https://www.amazon.es/dp/B0HDG23J3R', // Kindle; formatos enlazados en la misma ficha
+    precios: [
+      { formato: 'eBook Kindle', precio: '4,99 €' },
+      { formato: 'Tapa dura', precio: '16,63 €' },
     ],
   },
   {
