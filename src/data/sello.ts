@@ -24,6 +24,11 @@ export const mailerlite = {
   accountId: '2553830',      // cuenta MailerLite de David
   embedFormId: 'q80X1k',     // formulario «Web — El detector de humo» → grupo «El cambio que viene»
   pdfUrl: '/detector-de-humo.pdf', // imán hospedado en la propia web
+  // Segundo imán: serie «Sin humo» (finanzas) → grupo «Sin humo».
+  // Cuando crees el formulario embebido en MailerLite (grupo «Sin humo»),
+  // pega aquí su data-form y la landing /finanzas capturará de verdad.
+  embedFormIdSinHumo: 'dRrIMd', // formulario «Web — Los 3 escalones del dinero» → grupo «Sin humo» (doble opt-in ON)
+  pdfUrlSinHumo: '/tres-escalones-del-dinero.pdf',
 } as const;
 
 export const mailerliteReady = Boolean(mailerlite.accountId && mailerlite.embedFormId);

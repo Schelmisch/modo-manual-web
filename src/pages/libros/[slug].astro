@@ -8,11 +8,39 @@ export function getStaticPaths() {
   return libros.map((libro) => ({ params: { slug: libro.slug }, props: { libro } }));
 }
 
+import { sello } from '../../data/sello';
+
 const { libro } = Astro.props;
 const otros = libros.filter((l) => l.slug !== libro.slug && l.serie === libro.serie)
   .sort((a, b) => a.numero - b.numero);
+
+// Precio "4,99 €" → 4.99 (para las ofertas de schema.org).
+const parsePrecio = (p: string) => Number(p.replace(/[^\d,]/g, '').replace(',', '.'));
+const offers = (libro.precios ?? []).map((pr) => ({
+  '@type': 'Offer',
+  name: pr.formato,
+  price: parsePrecio(pr.precio).toFixed(2),
+  priceCurrency: 'EUR',
+  availability: 'https://schema.org/InStock',
+  ...(libro.amazon ? { url: libro.amazon } : {}),
+}));
+
+// Datos estructurados del libro (Google los usa para resultados enriquecidos).
+const bookLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Book',
+  name: libro.titulo,
+  headline: `${libro.titulo}: ${libro.subtitulo}`,
+  description: libro.sinopsis,
+  inLanguage: 'es',
+  author: { '@type': 'Person', name: sello.autor },
+  publisher: { '@type': 'Organization', name: sello.nombre },
+  image: new URL(withBase(libro.portada), Astro.site ?? sello.url).href,
+  isPartOf: { '@type': 'BookSeries', name: libro.serie },
+  ...(offers.length ? { offers } : {}),
+};
 ---
-<Base title={libro.titulo} description={libro.subtitulo}>
+<Base title={libro.titulo} description={libro.subtitulo} image={libro.portada} ogType="book" jsonLd={bookLd}>
   <section class="section">
     <div class="container" style="display:grid;grid-template-columns:minmax(0,280px) 1fr;gap:48px;align-items:start">
       <!-- Portada -->
@@ -35,13 +63,18 @@ const otros = libros.filter((l) => l.slug !== libro.slug && l.serie === libro.se
           {libro.puntos.map((p) => <li style="color:var(--text-soft);margin-bottom:8px">{p}</li>)}
         </ul>
 
-        {libro.precios && (
-          <p style="color:var(--text-dim);font-size:0.9rem">
-            {libro.precios.map((pr) => `${pr.formato}: ${pr.precio}`).join('  ·  ')}
-          </p>
+        {libro.precios && libro.estado === 'publicado' && (
+          <ul class="formatos">
+            {libro.precios.map((pr) => (
+              <li>
+                <span class="formato">{pr.formato}</span>
+                <span class="precio">{pr.precio}</span>
+              </li>
+            ))}
+          </ul>
         )}
 
-        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:20px">
+        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:20px;align-items:center">
           {libro.estado === 'publicado' && libro.amazon && (
             <a class="btn btn-primary" href={libro.amazon} target="_blank" rel="noopener">Comprar en Amazon</a>
           )}
@@ -49,9 +82,14 @@ const otros = libros.filter((l) => l.slug !== libro.slug && l.serie === libro.se
             <span class="btn btn-primary" style="opacity:0.6;cursor:default">Enlace de Amazon (pendiente de ASIN)</span>
           )}
           {libro.estado === 'proximamente' && (
-            <a class="btn btn-ghost" href={withBase('/newsletter')}>Avísame cuando salga</a>
+            <a class="btn btn-primary" href={withBase('/newsletter')}>Avísame cuando salga</a>
           )}
         </div>
+        {libro.estado === 'publicado' && (
+          <p style="color:var(--text-dim);font-size:0.86rem;margin-top:14px">
+            Los formatos comparten ficha en Amazon: elige el que prefieras allí.
+          </p>
+        )}
       </div>
     </div>
   </section>

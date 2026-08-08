@@ -1,5 +1,6 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
+import sitemap from '@astrojs/sitemap';
 
 // ── CONFIGURACIÓN DE DESPLIEGUE ─────────────────────────────────────────────
 // Dominio propio en producción: https://librosmodomanual.com
@@ -33,6 +34,7 @@ export default defineConfig({
   base: BASE,
   trailingSlash: 'ignore',
   build: { format: 'directory' },
+  integrations: [sitemap()],
   markdown: {
     rehypePlugins: [rehypeBaseLinks],
   },

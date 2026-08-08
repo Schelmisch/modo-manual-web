@@ -1,19 +1,29 @@
 ---
-import { mailerlite, mailerliteReady } from '../data/sello';
+import { mailerlite } from '../data/sello';
 // Bloque de captura de email (imán de lectores).
-// - Si MailerLite está configurado (ver src/data/sello.ts) → renderiza el
-//   formulario embebido real de MailerLite, que ya trae su propio título,
-//   texto, campo y botón (y gestiona doble opt-in + entrega del imán +
-//   arranque de la secuencia de bienvenida desde el panel de MailerLite).
-// - Si no → formulario de muestra con aviso, para no romper el diseño.
-interface Props { titulo?: string; texto?: string; }
+// - Si se le pasa un `formId` de MailerLite (o usa el de por defecto) → renderiza
+//   el formulario embebido real, que trae su propio título, texto, campo y botón
+//   (y gestiona doble opt-in + entrega del imán + secuencia de bienvenida desde
+//   el panel de MailerLite).
+// - Si no hay `formId` configurado → formulario de muestra con aviso, para no
+//   romper el diseño (útil mientras creas el formulario del segundo imán).
+interface Props {
+  titulo?: string;
+  texto?: string;
+  formId?: string; // data-form del formulario embebido; por defecto, el de «El cambio que viene»
+  cta?: string;    // texto del botón del formulario de muestra
+}
 const {
   titulo = 'El mapa, gratis',
   texto = 'Suscríbete y recibe «El detector de humo» —7 preguntas para leer la era de la IA sin que te la cuelen— más un email al mes con una idea útil de verdad. Sin humo, sin spam, baja cuando quieras.',
+  formId = mailerlite.embedFormId,
+  cta = 'Quiero el mapa',
 } = Astro.props;
+
+const ready = Boolean(mailerlite.accountId && formId);
 ---
-{mailerliteReady ? (
-  <div class="ml-embedded" data-form={mailerlite.embedFormId}></div>
+{ready ? (
+  <div class="ml-embedded" data-form={formId}></div>
 ) : (
   <div class="newsletter">
     <span class="kicker">Newsletter</span>
@@ -21,16 +31,16 @@ const {
     <p style="color:var(--text)">{texto}</p>
     <form action="" method="post" onsubmit="return false;">
       <input type="email" name="email" placeholder="tu@email.com" required aria-label="Tu email" />
-      <button class="btn btn-primary" type="submit">Quiero el mapa</button>
+      <button class="btn btn-primary" type="submit">{cta}</button>
     </form>
     <p class="nota">
-      ⚙️ Formulario de muestra. Conéctalo rellenando <code>accountId</code> y <code>embedFormId</code>
-      en <code>src/data/sello.ts</code>.
+      ⚙️ Formulario de muestra. Conéctalo pegando el <code>data-form</code> del formulario
+      embebido de MailerLite en <code>src/data/sello.ts</code>.
     </p>
   </div>
 )}
 
-{mailerliteReady && (
+{ready && (
   <script is:inline define:vars={{ accountId: mailerlite.accountId }}>
     (function (w, d, e, u, f, l, n) {
       w[f] = w[f] || function () { (w[f].q = w[f].q || []).push(arguments); };

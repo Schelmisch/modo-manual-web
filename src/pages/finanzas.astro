@@ -1,0 +1,50 @@
+---
+import Base from '../layouts/Base.astro';
+import Newsletter from '../components/Newsletter.astro';
+import { mailerlite } from '../data/sello';
+import { withBase } from '../lib/url';
+
+const desc = 'Descarga gratis «Los tres escalones del dinero»: el mapa de la serie «Sin humo» para pasar de cobrar un sueldo a que tu dinero trabaje por ti. Sin gurús, sin humo.';
+---
+<Base
+  title="Los tres escalones del dinero — guía gratis"
+  description={desc}
+>
+  <section class="section">
+    <div class="container" style="max-width:760px">
+      <span class="kicker">Guía gratuita · Serie «Sin humo»</span>
+      <h1>Los tres escalones del dinero</h1>
+      <p class="lede">
+        Cobrar un sueldo, facturar, y que tu dinero facture por ti. Son tres escalones
+        distintos —no tres formas de ganar más— y confundirlos es lo que mantiene atada
+        a la mayoría. Esta guía breve te los ordena en una tarde.
+      </p>
+
+      <ul style="margin:24px 0;padding-left:20px">
+        <li style="color:var(--text-soft);margin-bottom:8px">Por qué, con un sueldo normal, <strong>solo ahorrar no te hará libre</strong> (y qué sí).</li>
+        <li style="color:var(--text-soft);margin-bottom:8px">La diferencia real entre <strong>facturar</strong> y <strong>ser libre</strong>: el criterio del tiempo.</li>
+        <li style="color:var(--text-soft);margin-bottom:8px">Cómo empieza a trabajar tu dinero por ti sin promesas de doblarlo.</li>
+        <li style="color:var(--text-soft);margin-bottom:8px">En qué orden se suben los escalones —y por qué saltárselos te devuelve al suelo.</li>
+      </ul>
+
+      <p>
+        Déjame tu email y te la envío gratis en PDF. Después, un correo al mes con una idea
+        útil de verdad sobre dinero, negocio e inversión. Sin humo, sin spam, baja cuando quieras.
+      </p>
+
+      <div style="margin-top:28px">
+        <Newsletter
+          titulo="Quiero la guía gratis"
+          texto="Déjame tu email y te envío «Los tres escalones del dinero» en PDF, más un correo al mes con una idea útil de verdad. Sin humo, sin spam, baja cuando quieras."
+          formId={mailerlite.embedFormIdSinHumo}
+          cta="Enviádmela"
+        />
+      </div>
+
+      <p style="color:var(--text-dim);font-size:0.86rem;margin-top:28px">
+        ¿Prefieres el libro entero? La guía es el aperitivo de
+        <a href={withBase('/libros/de-cero-a-libre')}>«De cero a libre»</a>, el primero de la serie «Sin humo».
+      </p>
+    </div>
+  </section>
+</Base>

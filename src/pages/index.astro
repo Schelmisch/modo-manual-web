@@ -3,10 +3,29 @@ import Base from '../layouts/Base.astro';
 import LibroCard from '../components/LibroCard.astro';
 import Newsletter from '../components/Newsletter.astro';
 import { libros, series } from '../data/libros';
+import { sello } from '../data/sello';
 import { withBase } from '../lib/url';
 const porSerie = (nombre: string) => libros.filter((l) => l.serie === nombre).sort((a, b) => a.numero - b.numero);
+
+const orgLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: sello.nombre,
+  description: sello.descripcion,
+  url: sello.url,
+  email: sello.email,
+  logo: new URL(withBase('/og.jpg'), sello.url).href,
+  founder: { '@type': 'Person', name: sello.autor },
+};
+const siteLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: sello.nombre,
+  url: sello.url,
+  inLanguage: 'es',
+};
 ---
-<Base>
+<Base jsonLd={[orgLd, siteLd]}>
   <!-- HERO -->
   <section class="hero">
     <div class="container">

@@ -160,3 +160,10 @@ a:hover { color: #93a6ff; }
   .newsletter { padding: 26px; }
   body { font-size: 17px; }
 }
+
+/* Formatos y precios (ficha de libro) */
+.formatos { list-style: none; padding: 0; margin: 20px 0 4px; display: flex; flex-direction: column; gap: 0; max-width: 340px; }
+.formatos li { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.formatos li:first-child { border-top: 1px solid var(--border); }
+.formatos .formato { color: var(--text-soft); font-size: 0.98rem; }
+.formatos .precio { color: var(--text); font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
