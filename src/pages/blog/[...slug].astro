@@ -1,8 +1,10 @@
 ---
 import Base from '../../layouts/Base.astro';
+import LibroRelacionado from '../../components/LibroRelacionado.astro';
 import { getCollection, render } from 'astro:content';
 import { withBase } from '../../lib/url';
 import { sello } from '../../data/sello';
+import { libros } from '../../data/libros';
 
 export async function getStaticPaths() {
   const posts = await getCollection('blog', ({ data }) => !data.draft);
@@ -11,6 +13,7 @@ export async function getStaticPaths() {
 
 const { post } = Astro.props;
 const { Content } = await render(post);
+const libroRel = post.data.libro ? libros.find((l) => l.slug === post.data.libro) : undefined;
 const fmt = (d: Date) => d.toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
 
 const articleLd = {
@@ -34,6 +37,7 @@ const articleLd = {
       </div>
       <h1 style="margin-top:8px">{post.data.title}</h1>
       <Content />
+      {libroRel && <LibroRelacionado libro={libroRel} />}
     </div>
   </article>
 </Base>

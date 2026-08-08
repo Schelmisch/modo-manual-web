@@ -1,0 +1,30 @@
+---
+import type { Libro } from '../data/libros';
+import { withBase } from '../lib/url';
+// Tarjeta horizontal «el libro de este artículo»: portada + ficha + CTA.
+interface Props { libro: Libro; }
+const { libro } = Astro.props;
+const precioDesde = libro.precios?.[0]?.precio;
+---
+<aside class="libro-rel">
+  <a href={withBase(`/libros/${libro.slug}`)} class="libro-rel__cover">
+    <img src={withBase(libro.portada)} alt={`Portada de ${libro.titulo}`} loading="lazy" width="400" height="600" />
+  </a>
+  <div class="libro-rel__body">
+    <span class="kicker">El libro de este artículo · {libro.serie}</span>
+    <h3><a href={withBase(`/libros/${libro.slug}`)}>{libro.titulo}</a></h3>
+    <p class="libro-rel__sub">{libro.subtitulo}</p>
+    <div class="libro-rel__cta">
+      {libro.estado === 'publicado' && libro.amazon && (
+        <a class="btn btn-primary" href={libro.amazon} target="_blank" rel="noopener">Comprar en Amazon{precioDesde && ` · desde ${precioDesde}`}</a>
+      )}
+      {libro.estado === 'publicado' && !libro.amazon && (
+        <a class="btn btn-primary" href={withBase(`/libros/${libro.slug}`)}>Ver el libro</a>
+      )}
+      {libro.estado === 'proximamente' && (
+        <a class="btn btn-ghost" href={withBase('/newsletter')}>Avísame cuando salga</a>
+      )}
+      <a class="btn btn-ghost" href={withBase(`/libros/${libro.slug}`)}>Ficha completa</a>
+    </div>
+  </div>
+</aside>

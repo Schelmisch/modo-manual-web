@@ -1,0 +1,20 @@
+---
+import Base from '../layouts/Base.astro';
+import { withBase } from '../lib/url';
+---
+<Base title="Página no encontrada" description="Esta página no existe. Vuelve al catálogo o al blog del sello Modo manual.">
+  <section class="section" style="text-align:center">
+    <div class="container" style="max-width:640px">
+      <span class="kicker">Error 404</span>
+      <h1>Aquí no hay nada… todavía</h1>
+      <p class="lede" style="margin:0 auto 8px;max-width:520px">
+        La página que buscas no existe o se movió. Sin humo: lo decimos claro y te devolvemos al mando.
+      </p>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:28px">
+        <a class="btn btn-primary" href={withBase('/libros')}>Ver los libros</a>
+        <a class="btn btn-ghost" href={withBase('/blog')}>Ir al blog</a>
+        <a class="btn btn-ghost" href={withBase('/')}>Volver a la portada</a>
+      </div>
+    </div>
+  </section>
+</Base>

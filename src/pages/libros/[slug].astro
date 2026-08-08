@@ -3,6 +3,7 @@ import Base from '../../layouts/Base.astro';
 import Newsletter from '../../components/Newsletter.astro';
 import { libros } from '../../data/libros';
 import { withBase } from '../../lib/url';
+import { getCollection } from 'astro:content';
 
 export function getStaticPaths() {
   return libros.map((libro) => ({ params: { slug: libro.slug }, props: { libro } }));
@@ -13,6 +14,8 @@ import { sello } from '../../data/sello';
 const { libro } = Astro.props;
 const otros = libros.filter((l) => l.slug !== libro.slug && l.serie === libro.serie)
   .sort((a, b) => a.numero - b.numero);
+const articulos = (await getCollection('blog', ({ data }) => !data.draft && data.libro === libro.slug))
+  .sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime());
 
 // Precio "4,99 €" → 4.99 (para las ofertas de schema.org).
 const parsePrecio = (p: string) => Number(p.replace(/[^\d,]/g, '').replace(',', '.'));
@@ -106,6 +109,23 @@ const bookLd = {
               <img src={withBase(l.portada)} alt={`Portada de ${l.titulo}`} loading="lazy" width="400" height="600" />
               <div class="card-body"><h3>{l.titulo}</h3><div class="sub">{l.subtitulo}</div></div>
             </a>
+          ))}
+        </div>
+      </div>
+    </section>
+  )}
+
+  {articulos.length > 0 && (
+    <section class="section">
+      <div class="container" style="max-width:760px">
+        <span class="kicker">Del blog</span>
+        <h2>Artículos que nacen de este libro</h2>
+        <div style="margin-top:20px">
+          {articulos.map((post) => (
+            <article style="padding:18px 0;border-top:1px solid var(--border)">
+              <h3 style="margin:0 0 6px;font-size:1.25rem"><a href={withBase(`/blog/${post.id}`)}>{post.data.title}</a></h3>
+              <p style="margin:0">{post.data.description}</p>
+            </article>
           ))}
         </div>
       </div>

@@ -50,6 +50,9 @@ const jsonLdList = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
 
     <meta name="theme-color" content="#0b0d12" />
     <link rel="icon" href={withBase('/favicon.svg')} type="image/svg+xml" />
+    <link rel="apple-touch-icon" href={withBase('/apple-touch-icon.png')} />
+    <link rel="manifest" href={withBase('/site.webmanifest')} />
+    <link rel="alternate" type="application/rss+xml" title={`${sello.nombre} — Blog`} href={withBase('/rss.xml')} />
 
     {jsonLdList.map((data) => (
       <script type="application/ld+json" set:html={JSON.stringify(data)} />
