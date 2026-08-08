@@ -34,7 +34,7 @@ export default defineConfig({
   base: BASE,
   trailingSlash: 'ignore',
   build: { format: 'directory' },
-  integrations: [sitemap()],
+  integrations: [sitemap({ filter: (page) => !page.includes('/go/') })],
   markdown: {
     rehypePlugins: [rehypeBaseLinks],
   },

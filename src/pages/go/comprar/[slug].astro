@@ -1,0 +1,66 @@
+---
+import { libros } from '../../../data/libros';
+import { sello, analytics } from '../../../data/sello';
+import { withBase } from '../../../lib/url';
+
+// Página puente para medir clics en «Comprar en Amazon» con Cloudflare Web
+// Analytics (que solo cuenta páginas vistas): al cargarse dispara el beacon y
+// redirige al instante a Amazon. En «Top pages» del panel, cada /go/comprar/<slug>
+// = clics de compra de ese libro. Solo se generan para libros publicados con enlace.
+export function getStaticPaths() {
+  return libros
+    .filter((l) => l.estado === 'publicado' && l.amazon)
+    .map((l) => ({ params: { slug: l.slug }, props: { libro: l } }));
+}
+const { libro } = Astro.props;
+const dest = libro.amazon;
+---
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta http-equiv="refresh" content={`2;url=${dest}`} />
+    <title>Te llevamos a Amazon…</title>
+    <style>
+      :root { color-scheme: dark; }
+      body { margin:0; min-height:100vh; display:grid; place-items:center;
+        background:#0b0d12; color:#e8eaf0;
+        font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; }
+      .box { text-align:center; padding:24px; max-width:420px; }
+      .mark { font-family:'Iowan Old Style',Palatino,Georgia,serif; font-weight:700; font-size:1.4rem; }
+      .mark span { color:#d99a54; }
+      p { color:#a6adbf; margin:14px 0 0; }
+      a { color:#6e86f2; }
+    </style>
+    {analytics.cloudflareToken && (
+      <script
+        is:inline
+        id="cf-beacon"
+        defer
+        src="https://static.cloudflareinsights.com/beacon.min.js"
+        data-cf-beacon={`{"token": "${analytics.cloudflareToken}"}`}
+      />
+    )}
+    <script is:inline define:vars={{ dest }}>
+      (function () {
+        var go = function () { window.location.replace(dest); };
+        var done = false;
+        var redirect = function () { if (!done) { done = true; go(); } };
+        var s = document.getElementById('cf-beacon');
+        // En cuanto el beacon carga (y dispara su envío por sendBeacon/keepalive), redirige.
+        if (s) s.addEventListener('load', function () { setTimeout(redirect, 120); });
+        // Tope de seguridad por si el beacon no carga.
+        setTimeout(redirect, 900);
+      })();
+    </script>
+  </head>
+  <body>
+    <div class="box">
+      <div class="mark">Modo <span>manual</span></div>
+      <p>Abriendo Amazon…</p>
+      <p>Si no ocurre nada, <a href={dest}>haz clic aquí</a>.</p>
+    </div>
+  </body>
+</html>

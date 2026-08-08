@@ -16,7 +16,7 @@ const precioDesde = libro.precios?.[0]?.precio;
     <p class="libro-rel__sub">{libro.subtitulo}</p>
     <div class="libro-rel__cta">
       {libro.estado === 'publicado' && libro.amazon && (
-        <a class="btn btn-primary" href={libro.amazon} target="_blank" rel="noopener">Comprar en Amazon{precioDesde && ` · desde ${precioDesde}`}</a>
+        <a class="btn btn-primary" href={withBase(`/go/comprar/${libro.slug}`)} target="_blank" rel="noopener">Comprar en Amazon{precioDesde && ` · desde ${precioDesde}`}</a>
       )}
       {libro.estado === 'publicado' && !libro.amazon && (
         <a class="btn btn-primary" href={withBase(`/libros/${libro.slug}`)}>Ver el libro</a>

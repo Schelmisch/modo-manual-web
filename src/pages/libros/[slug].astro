@@ -79,7 +79,7 @@ const bookLd = {
 
         <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:20px;align-items:center">
           {libro.estado === 'publicado' && libro.amazon && (
-            <a class="btn btn-primary" href={libro.amazon} target="_blank" rel="noopener">Comprar en Amazon</a>
+            <a class="btn btn-primary" href={withBase(`/go/comprar/${libro.slug}`)} target="_blank" rel="noopener">Comprar en Amazon</a>
           )}
           {libro.estado === 'publicado' && !libro.amazon && (
             <span class="btn btn-primary" style="opacity:0.6;cursor:default">Enlace de Amazon (pendiente de ASIN)</span>
