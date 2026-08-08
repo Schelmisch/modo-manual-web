@@ -14,6 +14,16 @@ export const sello = {
   },
 } as const;
 
+// ── Analítica ───────────────────────────────────────────────────────────────
+// Cloudflare Web Analytics: gratis y sin cookies (no requiere banner de consentimiento).
+// El dominio va «Solo DNS» (proxy OFF), así que se instala vía beacon JS con un token.
+// Sácalo en Cloudflare → Analytics & Logs → Web Analytics → tu sitio → «Manage site»
+// (aparece en el snippet como data-cf-beacon='{"token":"XXXX"}'). Mientras esté vacío,
+// no se carga ningún script.
+export const analytics = {
+  cloudflareToken: '1c368ba29f924b7fb32ec2ab74578cf9', // Cloudflare Web Analytics (beacon)
+} as const;
+
 // ── MailerLite ──────────────────────────────────────────────────────────────
 // Rellena estos 2 valores desde tu cuenta de MailerLite y el formulario de la
 // web quedará conectado (ver la guía: /Ventas/03 - Canales/MailerLite — montaje.md).
