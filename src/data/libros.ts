@@ -19,24 +19,31 @@ export const serie1 = 'El cambio que viene';
 export const serie2 = 'Sin humo';
 export const serie3 = 'A ciencia cierta';
 
-// Metadatos de cada serie (para las secciones de la web).
-export const series = [
+// Metadatos de cada serie (para las secciones de la web y sus páginas propias).
+export type Serie = { nombre: string; slug: string; descripcion: string };
+export const series: Serie[] = [
   {
     nombre: serie1,
+    slug: 'el-cambio-que-viene',
     descripcion:
       'Cuatro libros para leer la era de la inteligencia artificial sin perder la cabeza: el marco general, el negocio, el dinero y lo que le queda al humano. Empieza por el primero; cada uno abre el siguiente.',
   },
   {
     nombre: serie2,
+    slug: 'sin-humo',
     descripcion:
       'Finanzas, negocio e inversión sin gurús ni postureo, con una regla en cada página: separar lo que funciona de lo que te venden. De la deuda a la libertad, paso a paso. Los cinco, ya a la venta.',
   },
   {
     nombre: serie3,
+    slug: 'a-ciencia-cierta',
     descripcion:
       'Salud sin milagros ni pánicos: comida, ejercicio, sueño y longevidad separando lo poco que de verdad mueve la aguja del humo que lo tapa, con dato y fuente y sin culpa. Un detector de humos para tu cuerpo. Los dos primeros, ya a la venta.',
   },
 ];
+
+// Índice de serie por número (1..N) para el kicker «Serie 0N».
+export const serieIndex = (nombre: string) => series.findIndex((s) => s.nombre === nombre) + 1;
 
 export const libros: Libro[] = [
   {

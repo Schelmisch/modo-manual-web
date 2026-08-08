@@ -1,7 +1,7 @@
 ---
 import Base from '../../layouts/Base.astro';
 import Newsletter from '../../components/Newsletter.astro';
-import { libros } from '../../data/libros';
+import { libros, series } from '../../data/libros';
 import { withBase } from '../../lib/url';
 import { getCollection } from 'astro:content';
 import { amazonUrl } from '../../lib/amazon';
@@ -17,6 +17,7 @@ const otros = libros.filter((l) => l.slug !== libro.slug && l.serie === libro.se
   .sort((a, b) => a.numero - b.numero);
 const articulos = (await getCollection('blog', ({ data }) => !data.draft && data.libro === libro.slug))
   .sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime());
+const serieActual = series.find((s) => s.nombre === libro.serie);
 
 // Precio "4,99 €" → 4.99 (para las ofertas de schema.org).
 const parsePrecio = (p: string) => Number(p.replace(/[^\d,]/g, '').replace(',', '.'));
@@ -103,7 +104,9 @@ const bookLd = {
     <section class="section section-soft">
       <div class="container">
         <span class="kicker">Sigue la serie</span>
-        <h2>{libro.serie}</h2>
+        <h2>{serieActual
+          ? <a href={withBase(`/series/${serieActual.slug}`)} style="color:inherit">{libro.serie}</a>
+          : libro.serie}</h2>
         <div class="grid-libros" style="margin-top:24px">
           {otros.map((l) => (
             <a class="libro-card" href={withBase(`/libros/${l.slug}`)}>

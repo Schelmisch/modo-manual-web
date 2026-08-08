@@ -2,6 +2,7 @@
 import Base from '../../layouts/Base.astro';
 import LibroCard from '../../components/LibroCard.astro';
 import { libros, series } from '../../data/libros';
+import { withBase } from '../../lib/url';
 const porSerie = (nombre: string) => libros.filter((l) => l.serie === nombre).sort((a, b) => a.numero - b.numero);
 ---
 <Base title="Libros" description="Catálogo del sello Modo manual. Serie «El cambio que viene»: leer la era de la IA sin perder la cabeza.">
@@ -13,11 +14,12 @@ const porSerie = (nombre: string) => libros.filter((l) => l.serie === nombre).so
 
       {series.map((s) => (
         <>
-          <h2 style="margin-top:48px">{s.nombre}</h2>
+          <h2 style="margin-top:48px"><a href={withBase(`/series/${s.slug}`)} style="color:inherit">{s.nombre}</a></h2>
           <p style="max-width:640px;margin-top:4px">{s.descripcion}</p>
           <div class="grid-libros" style="margin-top:24px">
             {porSerie(s.nombre).map((libro) => <LibroCard libro={libro} />)}
           </div>
+          <p style="margin-top:20px"><a href={withBase(`/series/${s.slug}`)}>Ver la serie «{s.nombre}» completa →</a></p>
         </>
       ))}
     </div>

@@ -1,0 +1,96 @@
+---
+import Base from '../../layouts/Base.astro';
+import LibroCard from '../../components/LibroCard.astro';
+import Newsletter from '../../components/Newsletter.astro';
+import { libros, series, serieIndex } from '../../data/libros';
+import { sello } from '../../data/sello';
+import { withBase } from '../../lib/url';
+
+export function getStaticPaths() {
+  return series.map((serie) => ({ params: { slug: serie.slug }, props: { serie } }));
+}
+
+const { serie } = Astro.props;
+const n = serieIndex(serie.nombre);
+const kicker = `Serie 0${n}`;
+
+const deLaSerie = libros.filter((l) => l.serie === serie.nombre).sort((a, b) => a.numero - b.numero);
+const ancla = deLaSerie.find((l) => l.ancla) ?? deLaSerie[0];
+const publicados = deLaSerie.filter((l) => l.estado === 'publicado').length;
+const total = deLaSerie.length;
+const estadoTexto = publicados === total
+  ? (total === 1 ? 'Ya a la venta.' : `Los ${total} ya a la venta.`)
+  : publicados === 0
+    ? 'Próximamente.'
+    : `${publicados} de ${total} ya a la venta; el resto, próximamente.`;
+
+const canonical = new URL(withBase(`/series/${serie.slug}`), Astro.site ?? sello.url).href;
+const seriesLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BookSeries',
+  name: serie.nombre,
+  description: serie.descripcion,
+  url: canonical,
+  inLanguage: 'es',
+  publisher: { '@type': 'Organization', name: sello.nombre },
+  hasPart: deLaSerie.map((l) => ({
+    '@type': 'Book',
+    name: l.titulo,
+    url: new URL(withBase(`/libros/${l.slug}`), Astro.site ?? sello.url).href,
+  })),
+};
+---
+<Base
+  title={serie.nombre}
+  description={serie.descripcion}
+  image={ancla?.portada}
+  jsonLd={seriesLd}
+>
+  <!-- Cabecera -->
+  <section class="section">
+    <div class="container" style="max-width:760px">
+      <a href={withBase('/libros')} style="font-size:0.9rem">← Todos los libros</a>
+      <span class="kicker" style="display:block;margin-top:20px">{kicker}</span>
+      <h1>{serie.nombre}</h1>
+      <p class="lede">{serie.descripcion}</p>
+      <p style="color:var(--text-dim);font-size:0.9rem">{total} {total === 1 ? 'libro' : 'libros'} · {estadoTexto}</p>
+      {ancla && (
+        <div style="margin-top:20px">
+          <a class="btn btn-primary" href={withBase(`/libros/${ancla.slug}`)}>Empieza por «{ancla.titulo}»</a>
+        </div>
+      )}
+    </div>
+  </section>
+
+  <!-- Los libros de la serie -->
+  <section class="section section-soft">
+    <div class="container">
+      <span class="kicker">Los libros, en orden</span>
+      <h2>Cada uno abre el siguiente</h2>
+      <div class="grid-libros" style="margin-top:32px">
+        {deLaSerie.map((libro) => <LibroCard libro={libro} />)}
+      </div>
+    </div>
+  </section>
+
+  <!-- Otras series -->
+  <section class="section">
+    <div class="container" style="max-width:760px">
+      <span class="kicker">Otras series del sello</span>
+      <h2>Sigue leyendo sin humo</h2>
+      <ul style="list-style:none;padding:0;margin:20px 0 0">
+        {series.filter((s) => s.slug !== serie.slug).map((s) => (
+          <li style="padding:14px 0;border-top:1px solid var(--border)">
+            <a href={withBase(`/series/${s.slug}`)} style="font-size:1.1rem">{s.nombre} →</a>
+            <p style="margin:4px 0 0;color:var(--text-soft);font-size:0.95rem">{s.descripcion}</p>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <!-- Newsletter -->
+  <section class="section section-soft">
+    <div class="container" style="max-width:760px"><Newsletter /></div>
+  </section>
+</Base>

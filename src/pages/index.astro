@@ -47,11 +47,14 @@ const siteLd = {
     <section class={i % 2 === 0 ? 'section section-soft' : 'section'}>
       <div class="container">
         <span class="kicker">{`Serie 0${i + 1}`}</span>
-        <h2>{s.nombre}</h2>
+        <h2><a href={withBase(`/series/${s.slug}`)} style="color:inherit">{s.nombre}</a></h2>
         <p style="max-width:640px">{s.descripcion}</p>
         <div class="grid-libros" style="margin-top:32px">
           {porSerie(s.nombre).map((libro) => <LibroCard libro={libro} />)}
         </div>
+        <p style="margin-top:24px">
+          <a href={withBase(`/series/${s.slug}`)}>Ver la serie «{s.nombre}» completa →</a>
+        </p>
       </div>
     </section>
   ))}
