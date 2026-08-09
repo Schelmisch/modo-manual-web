@@ -1,0 +1,86 @@
+---
+import Base from '../layouts/Base.astro';
+import Newsletter from '../components/Newsletter.astro';
+import { libros, series } from '../data/libros';
+import { withBase } from '../lib/url';
+
+// Mapa de "qué buscas" → serie. El punto de entrada de cada serie es su libro ancla.
+const rutas = [
+  {
+    objetivo: 'entender la era de la inteligencia artificial',
+    gancho: 'Sin comprar ni el paraíso ni el fin. Leer el cambio por ti mismo y decidir con la cabeza fría.',
+    serie: 'El cambio que viene',
+  },
+  {
+    objetivo: 'poner orden en mi dinero',
+    gancho: 'De la deuda a la libertad, paso a paso, separando lo que funciona de lo que te venden.',
+    serie: 'Sin humo',
+  },
+  {
+    objetivo: 'cuidar mi salud sin milagros ni pánicos',
+    gancho: 'Comida, ejercicio y sueño: lo poco que de verdad mueve la aguja, con dato y sin culpa.',
+    serie: 'A ciencia cierta',
+  },
+];
+
+const anclaDe = (nombre: string) =>
+  libros.find((l) => l.serie === nombre && l.ancla) ??
+  libros.filter((l) => l.serie === nombre).sort((a, b) => a.numero - b.numero)[0];
+
+const items = rutas
+  .map((r) => ({ ...r, libro: anclaDe(r.serie), meta: series.find((s) => s.nombre === r.serie) }))
+  .filter((r) => r.libro);
+---
+<Base
+  title="Empieza aquí"
+  description="¿Por dónde empiezo? Elige lo que buscas —IA, dinero o salud— y te llevamos al libro por el que arrancar. Sin humo."
+>
+  <section class="section">
+    <div class="container" style="max-width:760px">
+      <span class="kicker">Empieza aquí</span>
+      <h1>¿Por dónde empiezo?</h1>
+      <p class="lede">
+        Todos los libros de «Modo manual» comparten una regla —separar lo que se sabe de lo que se supone—
+        y cada serie empieza por un libro que abre el resto. Dinos qué buscas y te decimos por dónde arrancar.
+      </p>
+    </div>
+  </section>
+
+  <section class="section section-soft">
+    <div class="container" style="max-width:900px">
+      {items.map((r, i) => (
+        <div class="ruta">
+          <a href={withBase(`/libros/${r.libro.slug}`)} class="ruta__cover">
+            <img src={withBase(r.libro.portada)} alt={`Portada de ${r.libro.titulo}`} loading="lazy" width="400" height="600" />
+          </a>
+          <div class="ruta__body">
+            <span class="kicker">{`Ruta 0${i + 1} · Serie «${r.serie}»`}</span>
+            <h2 style="margin:6px 0 6px">Quiero {r.objetivo.toLowerCase()}</h2>
+            <p style="margin:0 0 8px">{r.gancho}</p>
+            <p style="margin:0 0 16px;color:var(--text-dim)">
+              Empieza por <strong style="color:var(--text)">«{r.libro.titulo}»</strong> — {r.libro.subtitulo}
+            </p>
+            <div style="display:flex;gap:10px;flex-wrap:wrap">
+              <a class="btn btn-primary" href={withBase(`/libros/${r.libro.slug}`)}>Empezar por este libro</a>
+              <a class="btn btn-ghost" href={withBase(`/series/${r.meta?.slug}`)}>Ver la serie completa</a>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container" style="max-width:760px">
+      <span class="kicker">¿Prefieres probar antes gratis?</span>
+      <h2>Dos guías gratuitas para empezar sin gastar un euro</h2>
+      <p>
+        Si quieres catar la voz de la casa antes de comprar nada: la
+        <a href={withBase('/newsletter')}>guía «El detector de humo»</a> (para leer la era de la IA sin que te la cuelen)
+        y la <a href={withBase('/finanzas')}>guía «Los tres escalones del dinero»</a> (para ordenar tus finanzas).
+        Las dos, gratis por email.
+      </p>
+      <div style="margin-top:28px"><Newsletter /></div>
+    </div>
+  </section>
+</Base>

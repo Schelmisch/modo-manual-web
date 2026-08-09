@@ -5,9 +5,10 @@ import { withBase } from '../lib/url';
   <div class="container bar">
     <a class="logo" href={withBase('/')}>Modo <span>manual</span></a>
     <nav class="nav">
+      <a href={withBase('/empieza-aqui')}>Empieza aquí</a>
       <a href={withBase('/libros')}>Libros</a>
       <a href={withBase('/blog')} class="hide-sm">Blog</a>
-      <a href={withBase('/newsletter')}>Newsletter</a>
+      <a href={withBase('/newsletter')} class="hide-sm">Newsletter</a>
     </nav>
   </div>
 </header>

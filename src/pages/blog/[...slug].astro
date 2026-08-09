@@ -28,7 +28,7 @@ const articleLd = {
   mainEntityOfPage: new URL(withBase(`/blog/${post.id}`), Astro.site ?? sello.url).href,
 };
 ---
-<Base title={post.data.title} description={post.data.description} ogType="article" jsonLd={articleLd}>
+<Base title={post.data.title} description={post.data.description} image={`/og/${post.id}.jpg`} ogType="article" jsonLd={articleLd}>
   <article class="section">
     <div class="container prose">
       <a href={withBase('/blog')} style="font-size:0.9rem">← Blog</a>
