@@ -91,6 +91,12 @@
     <label>Manuscrito (.md)</label>
     <input id="manuscrito" type="file" accept=".md,.markdown,text/markdown">
     <p class="muted" id="estim"></p>
+    <button class="sec mini" id="prever" style="margin-top:6px">👁 Previsualizar y validar</button>
+    <div id="preview" style="display:none; background:#0f1319; border:1px solid var(--line); border-radius:10px; padding:12px; margin-top:10px">
+      <div id="preAvisos"></div>
+      <p class="muted" id="preMeta" style="margin:6px 0 0"></p>
+      <details><summary>Ver guion locutable</summary><pre id="preGuion" style="color:var(--fg)"></pre></details>
+    </div>
     <label>Portada (jpg/png, opcional — se incrusta en el audio)</label>
     <input id="portada" type="file" accept="image/*">
     <div class="row">
@@ -104,6 +110,15 @@
     </select>
     <button id="producir">▶ Producir libro entero</button>
     <button id="muestra" class="sec">🎧 Producir solo una muestra (cap. 1)</button>
+  </div>
+
+  <div class="card">
+    <h2>Cola · varios libros</h2>
+    <label>Manuscritos (.md — puedes elegir varios a la vez)</label>
+    <input id="colaFiles" type="file" accept=".md,.markdown,text/markdown" multiple>
+    <p class="muted">Se producen <b>en fila</b> (uno tras otro) en la nube, con la voz Tux y el formato de arriba. No hace falta que estés pendiente: míralos en el Historial.</p>
+    <button id="encolar">▶ Encolar y producir</button>
+    <p class="muted" id="colaMsg"></p>
   </div>
 
   <div class="card" id="panel" style="display:none">
@@ -239,6 +254,45 @@ async function lanzar(solo){
 }
 $('#producir').onclick = () => lanzar(0);
 $('#muestra').onclick  = () => lanzar(1);
+
+// --- Previsualizar y validar el guion ---
+$('#prever').onclick = async () => {
+  const f = $('#manuscrito').files[0];
+  if (!f) return alert('Elige un manuscrito .md primero.');
+  $('#prever').disabled = true; $('#prever').textContent = 'Generando guion…';
+  try {
+    const fd = new FormData();
+    fd.append('manuscrito', f); fd.append('title', $('#title').value || 'Guion');
+    const d = await (await api('/previsualizar', { method:'POST', headers: hAuth(), body: fd })).json();
+    $('#preview').style.display = 'block';
+    $('#preMeta').innerHTML = `${d.capitulos} secciones · ${d.palabras ?? '?'} palabras`;
+    $('#preAvisos').innerHTML = (d.avisos && d.avisos.length)
+      ? d.avisos.map(a => `<div style="color:var(--warn);font-size:.85rem">⚠ ${a}</div>`).join('')
+      : `<div style="color:var(--ok);font-size:.85rem">✅ Sin avisos: listo para producir.</div>`;
+    $('#preGuion').textContent = (d.guion || '') + (d.truncado ? '\n\n… (vista previa recortada)' : '');
+  } catch(e) { alert('Error: ' + e.message); }
+  $('#prever').disabled = false; $('#prever').textContent = '👁 Previsualizar y validar';
+};
+
+// --- Cola: varios libros en fila ---
+$('#encolar').onclick = async () => {
+  const files = [...$('#colaFiles').files];
+  if (!files.length) return alert('Elige uno o varios manuscritos .md');
+  pedirAviso();
+  $('#encolar').disabled = true; $('#colaMsg').textContent = 'Encolando…';
+  let n = 0;
+  for (const f of files) {
+    const t = f.name.replace(/\.(md|markdown)$/i,'').replace(/[—-]\s*manuscrito.*$/i,'').replace(/manuscrito/i,'').trim() || f.name;
+    const fd = new FormData();
+    fd.append('manuscrito', f); fd.append('title', t); fd.append('author', $('#author').value);
+    fd.append('voz', VOZ); fd.append('preset', $('#preset').value); fd.append('encolar', 1);
+    try { await api('/crear', { method:'POST', headers: hAuth(), body: fd }); n++; } catch(e){}
+  }
+  try { await api('/arrancar-cola', { method:'POST', headers: hAuth() }); } catch(e){}
+  $('#colaMsg').textContent = `✅ ${n} libro(s) en cola. Se producen en fila; síguelos en el Historial.`;
+  $('#colaFiles').value = ''; cargarHist();
+  $('#encolar').disabled = false;
+};
 
 window.limpiar = () => {
   LS.removeItem(JOBKEY); job = null;
@@ -379,7 +433,8 @@ async function cargarHist(){
     if (!visibles.length) { cont.innerHTML = '<p class="empty">No hay audiolibros en el historial.</p>'; return; }
     cont.innerHTML = visibles.map(t => {
       const ic = t.estado==='listo' ? '✅' : t.estado==='error' ? '❌' : t.estado==='cancelado' ? '⏹' : '⏳';
-      const meta = [fmtFecha(t.creado), t.total ? t.total+' pistas' : t.estado].filter(Boolean).join(' · ');
+      const LBL = { en_cola:'en cola', encolado:'en cola', guion:'preparando…', produciendo:'grabando…', masterizando:'masterizando…', cancelado:'cancelado', error:'error', listo:'listo' };
+      const meta = [fmtFecha(t.creado), t.total ? t.total+' pistas' : (LBL[t.estado]||t.estado)].filter(Boolean).join(' · ');
       const del = `<button class="mini sec" onclick="borrar('${t.job_id}')">🗑 Eliminar</button>`;
       let acc = '';
       if (t.estado==='listo') {
