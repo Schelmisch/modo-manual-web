@@ -501,7 +501,8 @@ async function cargarHist(){
     cont.innerHTML = visibles.map(t => {
       const ic = t.estado==='listo' ? '✅' : t.estado==='error' ? '❌' : t.estado==='cancelado' ? '⏹' : '⏳';
       const LBL = { en_cola:'en cola', encolado:'en cola', guion:'preparando…', produciendo:'grabando…', masterizando:'masterizando…', cancelado:'cancelado', error:'error', listo:'listo' };
-      const meta = [fmtFecha(t.creado), t.total ? t.total+' pistas' : (LBL[t.estado]||t.estado)].filter(Boolean).join(' · ');
+      const coste = t.tiempo_total_seg ? `≈ ${(t.tiempo_total_seg/3600*RATE).toFixed(2)} $` : '';
+      const meta = [fmtFecha(t.creado), t.total ? t.total+' pistas' : (LBL[t.estado]||t.estado), coste].filter(Boolean).join(' · ');
       const del = `<button class="mini sec" onclick="borrar('${t.job_id}')">🗑 Eliminar</button>`;
       let acc = '';
       if (t.estado==='listo') {
