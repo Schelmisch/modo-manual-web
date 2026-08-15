@@ -30,14 +30,20 @@
   .muted { color:var(--mut); font-size:.85rem; }
   .voz { display:flex; align-items:center; gap:10px; font-weight:600; }
   .voz .dot { width:10px; height:10px; border-radius:50%; background:var(--ok); }
-  .estado { font-weight:600; }
+  .estado { font-weight:600; margin:0 0 4px; }
+  .stats { display:flex; flex-wrap:wrap; gap:8px 16px; margin-top:10px; color:var(--mut);
+           font-size:.9rem; font-variant-numeric:tabular-nums; }
+  .stats b { color:var(--fg); font-weight:600; }
   a.dl { display:block; text-align:center; text-decoration:none; background:var(--ok);
-         color:#04140a; font-weight:700; padding:12px; border-radius:10px; margin-top:12px; }
-  .barra { height:8px; background:#0f1319; border-radius:6px; overflow:hidden; margin-top:10px; }
-  .barra > i { display:block; height:100%; background:var(--acc); width:0; transition:width .4s; }
+         color:#04140a; font-weight:700; padding:12px; border-radius:10px; margin-top:14px; }
+  .barra { height:10px; background:#0f1319; border-radius:6px; overflow:hidden; margin-top:10px; }
+  .barra > i { display:block; height:100%; background:var(--acc); width:0; transition:width .5s; }
+  .barra.anim > i { background:linear-gradient(90deg,var(--acc),#9ec5ff,var(--acc));
+                    background-size:200% 100%; animation:sh 1.6s linear infinite; }
+  @keyframes sh { to { background-position:-200% 0; } }
   pre { white-space:pre-wrap; font-size:.8rem; color:var(--err); background:#0f1319;
         border-radius:8px; padding:10px; max-height:200px; overflow:auto; }
-  details summary { cursor:pointer; color:var(--mut); font-size:.85rem; }
+  details summary { cursor:pointer; color:var(--mut); font-size:.85rem; margin-top:10px; }
 </style>
 </head>
 <body>
@@ -78,11 +84,17 @@
   </div>
 
   <div class="card" id="panel" style="display:none">
-    <h2>Progreso</h2>
+    <h2 id="panelTit">Progreso</h2>
     <p class="estado" id="estado">—</p>
-    <div class="barra"><i id="barra"></i></div>
-    <p class="muted" id="detalle"></p>
+    <div class="barra" id="barraBox"><i id="barra"></i></div>
+    <div class="stats">
+      <span id="pistas"></span>
+      <span id="tiempo"></span>
+      <span id="porcap"></span>
+      <span id="eta"></span>
+    </div>
     <div id="descarga"></div>
+    <button class="sec" id="limpiar" style="display:none">Producir otro</button>
     <details id="errbox" style="display:none"><summary>Ver detalle del error</summary><pre id="err"></pre></details>
   </div>
 </div>
@@ -90,10 +102,12 @@
 <script>
 const $ = s => document.querySelector(s);
 const LS = localStorage;
-const VOZ = 'ref_tux_limpia.wav';   // voz única del sello
-let jobId = null, timer = null;
+const VOZ = 'ref_tux_limpia.wav';       // voz única del sello
+const JOBKEY = 'job';                   // job persistido entre recargas
+let job = null; try { job = JSON.parse(LS.getItem(JOBKEY) || 'null'); } catch(e){}
+let pollTimer = null, tickTimer = null;
 
-// --- persistencia de conexión ---
+// --- conexión (persistida) ---
 $('#endpoint').value = LS.getItem('endpoint') || 'https://davidamigosanchez--estudio-audiolibros-api.modal.run';
 $('#token').value    = LS.getItem('token') || '';
 const base  = () => ($('#endpoint').value || '').replace(/\/+$/,'');
@@ -106,14 +120,14 @@ async function api(path, opts={}) {
   return r;
 }
 
+function fmt(s){ s=Math.max(0,Math.round(s)); const m=Math.floor(s/60); return m+':'+String(s%60).padStart(2,'0'); }
+
 $('#guardar').onclick = async () => {
   LS.setItem('endpoint', $('#endpoint').value);
   LS.setItem('token', $('#token').value);
   $('#conx').textContent = 'Comprobando…';
-  try {
-    await api('/salud');
-    $('#conx').textContent = '✅ Conectado.';
-  } catch(e) { $('#conx').textContent = '❌ ' + e.message; }
+  try { await api('/salud'); $('#conx').textContent = '✅ Conectado.'; }
+  catch(e) { $('#conx').textContent = '❌ ' + e.message; }
 };
 
 $('#producir').onclick = async () => {
@@ -129,42 +143,95 @@ $('#producir').onclick = async () => {
   $('#producir').disabled = true;
   try {
     const r = await api('/crear', { method:'POST', headers: hAuth(), body: fd });
-    jobId = (await r.json()).job_id;
-    $('#panel').style.display = 'block';
-    $('#panel').scrollIntoView({behavior:'smooth'});
-    seguir();
+    const { job_id } = await r.json();
+    job = { id: job_id, title: $('#title').value, launchedAt: Date.now(), done: false };
+    LS.setItem(JOBKEY, JSON.stringify(job));
+    arrancar();
   } catch(e) { alert('Error: ' + e.message); }
   $('#producir').disabled = false;
 };
 
-const ETAPAS = { encolado:['Encolado…',10], guion:['Preparando el guion…',25],
-                 produciendo:['Grabando capítulos (lo más largo)…',70],
-                 masterizando:['Masterizando…',90], listo:['¡Listo!',100], error:['Error',100] };
+$('#limpiar').onclick = () => {
+  LS.removeItem(JOBKEY); job = null;
+  clearTimeout(pollTimer); clearInterval(tickTimer);
+  $('#panel').style.display = 'none';
+  $('#descarga').innerHTML = ''; $('#limpiar').style.display = 'none';
+  $('#errbox').style.display = 'none';
+};
 
-function seguir() {
-  clearInterval(timer);
-  const tick = async () => {
-    try {
-      const st = await (await api('/estado/'+jobId, { headers: hAuth() })).json();
-      const [txt, pct] = ETAPAS[st.estado] || [st.estado, 50];
-      $('#estado').textContent = txt;
-      $('#barra').style.width = pct + '%';
-      $('#detalle').textContent = st.archivos ? (st.archivos.length + ' pistas') : ('id: '+jobId);
+const ETAPAS = { encolado:['En cola…',6], guion:['Preparando el guion…',14],
+                 produciendo:['Grabando capítulos…',null],
+                 masterizando:['Masterizando…',96], listo:['✅ ¡Listo!',100], error:['❌ Error',100] };
+
+function arrancar(){
+  $('#panel').style.display = 'block';
+  $('#panelTit').textContent = 'Progreso · ' + (job.title || '');
+  $('#descarga').innerHTML = ''; $('#limpiar').style.display = 'none';
+  $('#errbox').style.display = 'none';
+  if (!job.done) {
+    clearInterval(tickTimer);
+    tickTimer = setInterval(() => {
+      if (job && !job.done) $('#tiempo').textContent = '⏱ ' + fmt((Date.now()-job.launchedAt)/1000);
+    }, 1000);
+  }
+  poll();
+}
+
+function render(st){
+  const [txt, basePct] = ETAPAS[st.estado] || [st.estado, 50];
+  $('#estado').textContent = txt;
+  const producing = st.estado === 'produciendo';
+  $('#barraBox').classList.toggle('anim', producing || st.estado==='guion' || st.estado==='masterizando');
+
+  // barra
+  let pct = basePct;
+  if (producing && st.total) pct = 14 + Math.round((st.hechas/st.total)*80);   // 14→94%
+  if (pct == null) pct = 40;
+  $('#barra').style.width = pct + '%';
+
+  // pistas
+  if (st.total) {
+    $('#pistas').innerHTML = (st.estado==='listo')
+      ? `<b>${st.total}</b> pistas`
+      : `Capítulo <b>${Math.min(st.hechas+1, st.total)}</b> de <b>${st.total}</b>`;
+  } else { $('#pistas').textContent = ''; }
+
+  // ritmo por capítulo
+  $('#porcap').innerHTML = st.seg_por_pista ? `≈ <b>${fmt(st.seg_por_pista)}</b> / capítulo` : '';
+
+  // ETA (solo mientras produce)
+  $('#eta').innerHTML = (producing && st.eta_seg>0) ? `faltan ~<b>${fmt(st.eta_seg)}</b>` : '';
+
+  // tiempo final (congelado) cuando termina
+  if (st.estado==='listo' && st.tiempo_total_seg!=null)
+    $('#tiempo').innerHTML = `⏱ <b>${fmt(st.tiempo_total_seg)}</b> total`;
+}
+
+async function poll(){
+  if (!job) return;
+  try {
+    const st = await (await api('/estado/'+job.id, { headers: hAuth() })).json();
+    render(st);
+    if (st.estado === 'listo' || st.estado === 'error') {
+      job.done = true; LS.setItem(JOBKEY, JSON.stringify(job));
+      clearInterval(tickTimer); clearTimeout(pollTimer);
+      $('#barraBox').classList.remove('anim');
+      $('#limpiar').style.display = 'block';
       if (st.estado === 'listo') {
-        clearInterval(timer);
         $('#descarga').innerHTML =
-          `<a class="dl" href="${base()}/descargar/${jobId}?token=${encodeURIComponent(token())}">⬇ Descargar audiolibro (.zip)</a>`;
-      }
-      if (st.estado === 'error') {
-        clearInterval(timer);
+          `<a class="dl" href="${base()}/descargar/${job.id}?token=${encodeURIComponent(token())}">⬇ Descargar audiolibro (.zip)</a>`;
+      } else {
         $('#errbox').style.display = 'block';
         $('#err').textContent = st.error || 'desconocido';
       }
-    } catch(e) { /* reintenta en el siguiente tick */ }
-  };
-  tick();
-  timer = setInterval(tick, 15000);
+      return;
+    }
+  } catch(e) { /* reintenta */ }
+  pollTimer = setTimeout(poll, 8000);
 }
+
+// --- reengancha un job en curso al abrir/recargar ---
+if (job) arrancar();
 </script>
 </body>
 </html>
