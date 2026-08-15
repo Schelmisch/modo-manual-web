@@ -143,11 +143,11 @@
   </div>
 
   <div class="card">
-    <h2>Coste estimado · este mes</h2>
+    <h2>Coste · este mes <button class="sec mini" id="refCoste">Actualizar</button></h2>
     <p class="estado" id="costeVal">—</p>
     <div class="barra"><i id="costeBar"></i></div>
     <p class="muted" id="costeExtra"></p>
-    <p class="muted" style="opacity:.85">Cifra <b>orientativa</b> (tiempo de GPU × ~1,10 $/h; no incluye CPU, arranques ni almacenamiento). La factura <b>real y exacta</b> está en <a href="https://modal.com/settings/davidamigosanchez/usage?tab=usage" target="_blank" rel="noopener" style="color:var(--acc)">Modal → Usage ↗</a>. Los primeros 30 $/mes son gratis.</p>
+    <p class="muted" style="opacity:.85">Gasto <b>real</b> leído de la facturación de Modal. Detalle en <a href="https://modal.com/settings/davidamigosanchez/usage?tab=usage" target="_blank" rel="noopener" style="color:var(--acc)">Modal → Usage ↗</a>. Los primeros 30 $/mes son gratis.</p>
   </div>
 
   <div class="card">
@@ -444,6 +444,24 @@ function pintarCoste(items){
     : `Te quedan ~<b>${(FREE-coste).toFixed(2)} $</b> gratis este mes.`;
 }
 
+// --- Coste REAL (de la facturación de Modal) ---
+async function cargarCosteReal(){
+  if (!token()) return;
+  try {
+    const d = await (await api('/coste-real', { headers: hAuth() })).json();
+    if (d.error) throw new Error(d.error);
+    const m = d.metered ?? 0, free = d.gratis_total ?? 30, billed = d.billed ?? 0;
+    $('#costeVal').innerHTML = `<b>${m.toFixed(2)} $</b> <span class="muted">de ${free} $ gratis · facturado ${billed.toFixed(2)} $</span>`;
+    const bar = $('#costeBar');
+    bar.style.width = Math.min(100, m/free*100) + '%';
+    bar.style.background = m>free ? 'var(--err)' : 'var(--acc)';
+    $('#costeExtra').innerHTML = m>free
+      ? `⚠ Te pasas del gratis: <b style="color:var(--err)">${(m-free).toFixed(2)} $</b> este mes.`
+      : `Te quedan ~<b>${(free-m).toFixed(2)} $</b> gratis este mes.`;
+  } catch(e){ /* se queda la estimación de pintarCoste */ }
+}
+$('#refCoste').onclick = cargarCosteReal;
+
 // --- Historial ---
 $('#refrescar').onclick = cargarHist;
 window.borrar = async (id) => {
@@ -463,7 +481,8 @@ async function cargarHist(){
   try {
     const items = await (await api('/trabajos', { headers: hAuth() })).json();
     histRetry = 0;
-    pintarCoste(items);
+    pintarCoste(items);      // estimación instantánea…
+    cargarCosteReal();       // …y encima el gasto REAL de Modal si responde
     const visibles = items.filter(t => !t.oculto);
     if (!visibles.length) { cont.innerHTML = '<p class="empty">No hay audiolibros en el historial.</p>'; return; }
     cont.innerHTML = visibles.map(t => {
