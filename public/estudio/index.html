@@ -114,10 +114,16 @@
 
   <div class="card">
     <h2>Cola · varios libros</h2>
-    <label>Manuscritos (.md — puedes elegir varios a la vez)</label>
-    <input id="colaFiles" type="file" accept=".md,.markdown,text/markdown" multiple>
-    <p class="muted">Se producen <b>en fila</b> (uno tras otro) en la nube, con la voz Tux y el formato de arriba. No hace falta que estés pendiente: míralos en el Historial.</p>
-    <button id="encolar">▶ Encolar y producir</button>
+    <p class="muted" style="margin-top:0">Añade libros uno a uno (cada uno con su título y su portada) y prodúcelos <b>en fila</b>. No hace falta estar pendiente.</p>
+    <label>Manuscrito (.md)</label>
+    <input id="colaMan" type="file" accept=".md,.markdown,text/markdown">
+    <label>Título de este libro</label>
+    <input id="colaTitle" placeholder="Título del libro">
+    <label>Portada de este libro (jpg/png, opcional)</label>
+    <input id="colaCover" type="file" accept="image/*">
+    <button class="sec" id="colaAdd">➕ Añadir a la cola</button>
+    <div id="colaList" style="margin-top:8px"></div>
+    <button id="colaGo" style="display:none">▶ Producir la cola</button>
     <p class="muted" id="colaMsg"></p>
   </div>
 
@@ -274,24 +280,53 @@ $('#prever').onclick = async () => {
   $('#prever').disabled = false; $('#prever').textContent = '👁 Previsualizar y validar';
 };
 
-// --- Cola: varios libros en fila ---
-$('#encolar').onclick = async () => {
-  const files = [...$('#colaFiles').files];
-  if (!files.length) return alert('Elige uno o varios manuscritos .md');
+// --- Cola: cada libro con su título y su portada ---
+let cola = [];
+$('#colaMan').onchange = () => {
+  const f = $('#colaMan').files[0];
+  if (f && !$('#colaTitle').value) {
+    const n = f.name.replace(/\.(md|markdown)$/i,'').replace(/[—-]\s*manuscrito.*$/i,'').replace(/manuscrito/i,'').trim();
+    if (n) $('#colaTitle').value = n;
+  }
+};
+$('#colaAdd').onclick = () => {
+  const f = $('#colaMan').files[0];
+  if (!f) return alert('Elige un manuscrito .md');
+  const title = ($('#colaTitle').value || f.name.replace(/\.(md|markdown)$/i,'')).trim();
+  cola.push({ file: f, title, cover: $('#colaCover').files[0] || null });
+  $('#colaMan').value = ''; $('#colaTitle').value = ''; $('#colaCover').value = '';
+  renderCola();
+};
+window.quitarCola = (i) => { cola.splice(i, 1); renderCola(); };
+function renderCola(){
+  const c = $('#colaList');
+  if (!cola.length) { c.innerHTML = ''; $('#colaGo').style.display = 'none'; return; }
+  c.innerHTML = cola.map((it, i) =>
+    `<div class="job"><div class="job-t">${i+1}. ${it.title}</div>`+
+    `<div class="job-m">${it.cover ? '🖼️ con portada' : 'sin portada'} · ${it.file.name}</div>`+
+    `<div class="job-a"><button class="mini sec" onclick="quitarCola(${i})">✕ Quitar</button></div></div>`
+  ).join('');
+  $('#colaGo').style.display = 'block';
+  $('#colaGo').textContent = `▶ Producir la cola (${cola.length})`;
+}
+$('#colaGo').onclick = async () => {
+  if (!cola.length) return;
   pedirAviso();
-  $('#encolar').disabled = true; $('#colaMsg').textContent = 'Encolando…';
+  $('#colaGo').disabled = true; $('#colaMsg').textContent = 'Encolando…';
   let n = 0;
-  for (const f of files) {
-    const t = f.name.replace(/\.(md|markdown)$/i,'').replace(/[—-]\s*manuscrito.*$/i,'').replace(/manuscrito/i,'').trim() || f.name;
+  for (const it of cola) {
     const fd = new FormData();
-    fd.append('manuscrito', f); fd.append('title', t); fd.append('author', $('#author').value);
-    fd.append('voz', VOZ); fd.append('preset', $('#preset').value); fd.append('encolar', 1);
+    fd.append('manuscrito', it.file); fd.append('title', it.title);
+    fd.append('author', $('#author').value); fd.append('voz', VOZ);
+    fd.append('preset', $('#preset').value); fd.append('encolar', 1);
+    if (it.cover) fd.append('portada', it.cover);
     try { await api('/crear', { method:'POST', headers: hAuth(), body: fd }); n++; } catch(e){}
   }
   try { await api('/arrancar-cola', { method:'POST', headers: hAuth() }); } catch(e){}
+  cola = []; renderCola();
   $('#colaMsg').textContent = `✅ ${n} libro(s) en cola. Se producen en fila; síguelos en el Historial.`;
-  $('#colaFiles').value = ''; cargarHist();
-  $('#encolar').disabled = false;
+  cargarHist();
+  $('#colaGo').disabled = false;
 };
 
 window.limpiar = () => {
