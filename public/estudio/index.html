@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Estudio de audiolibros</title>
+<style>
+  :root { --bg:#0e1116; --card:#171b22; --line:#262c36; --fg:#e6e9ef; --mut:#9aa4b2;
+          --acc:#6ea8fe; --ok:#3fb950; --err:#f85149; }
+  * { box-sizing:border-box; }
+  body { margin:0; font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+         background:var(--bg); color:var(--fg); }
+  .wrap { max-width:640px; margin:0 auto; padding:20px 16px 80px; }
+  h1 { font-size:1.4rem; margin:.2em 0 .1em; }
+  .sub { color:var(--mut); margin:0 0 20px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:14px;
+          padding:16px; margin-bottom:16px; }
+  h2 { font-size:.85rem; text-transform:uppercase; letter-spacing:.06em;
+       color:var(--mut); margin:0 0 12px; }
+  label { display:block; font-size:.85rem; color:var(--mut); margin:10px 0 4px; }
+  input, select, button { font:inherit; width:100%; padding:11px 12px; border-radius:10px;
+       border:1px solid var(--line); background:#0f1319; color:var(--fg); }
+  input[type=file] { padding:9px; }
+  button { background:var(--acc); color:#08111f; border:none; font-weight:600; cursor:pointer;
+       margin-top:14px; }
+  button.sec { background:transparent; color:var(--fg); border:1px solid var(--line); }
+  button:disabled { opacity:.5; cursor:not-allowed; }
+  .row { display:flex; gap:10px; } .row > * { flex:1; }
+  .muted { color:var(--mut); font-size:.85rem; }
+  .estado { font-weight:600; }
+  a.dl { display:block; text-align:center; text-decoration:none; background:var(--ok);
+         color:#04140a; font-weight:700; padding:12px; border-radius:10px; margin-top:12px; }
+  .barra { height:8px; background:#0f1319; border-radius:6px; overflow:hidden; margin-top:10px; }
+  .barra > i { display:block; height:100%; background:var(--acc); width:0; transition:width .4s; }
+  pre { white-space:pre-wrap; font-size:.8rem; color:var(--err); background:#0f1319;
+        border-radius:8px; padding:10px; max-height:200px; overflow:auto; }
+  details summary { cursor:pointer; color:var(--mut); font-size:.85rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🎙️ Estudio de audiolibros</h1>
+  <p class="sub">Produce el libro entero en la nube. No necesitas encender el Mac.</p>
+
+  <div class="card">
+    <h2>Conexión</h2>
+    <label>URL de la API (Modal)</label>
+    <input id="endpoint" placeholder="https://…-api.modal.run">
+    <label>Clave de acceso</label>
+    <input id="token" type="password" placeholder="tu ESTUDIO_TOKEN">
+    <button class="sec" id="guardar">Guardar y comprobar</button>
+    <p class="muted" id="conx"></p>
+  </div>
+
+  <div class="card">
+    <h2>Voz de referencia</h2>
+    <label>Voz a usar</label>
+    <select id="voz"><option value="">— sin voces aún —</option></select>
+    <label>Subir una voz nueva (.wav de tu voz o de dominio público)</label>
+    <input id="vozfile" type="file" accept="audio/*">
+    <button class="sec" id="subirvoz">Subir voz</button>
+    <p class="muted" id="vozmsg"></p>
+  </div>
+
+  <div class="card">
+    <h2>Nuevo audiolibro</h2>
+    <label>Manuscrito (.md)</label>
+    <input id="manuscrito" type="file" accept=".md,.markdown,text/markdown">
+    <div class="row">
+      <div><label>Título</label><input id="title" placeholder="Modo manual"></div>
+      <div><label>Autor</label><input id="author" placeholder="David…"></div>
+    </div>
+    <label>Formato de salida</label>
+    <select id="preset">
+      <option value="google">Google Play (recomendado)</option>
+      <option value="acx">ACX / Audible</option>
+    </select>
+    <button id="producir">▶ Producir audiolibro</button>
+  </div>
+
+  <div class="card" id="panel" style="display:none">
+    <h2>Progreso</h2>
+    <p class="estado" id="estado">—</p>
+    <div class="barra"><i id="barra"></i></div>
+    <p class="muted" id="detalle"></p>
+    <div id="descarga"></div>
+    <details id="errbox" style="display:none"><summary>Ver detalle del error</summary><pre id="err"></pre></details>
+  </div>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const LS = localStorage;
+let jobId = null, timer = null;
+
+// --- persistencia de conexión ---
+$('#endpoint').value = LS.getItem('endpoint') || 'https://davidamigosanchez--estudio-audiolibros-api.modal.run';
+$('#token').value    = LS.getItem('token') || '';
+const base  = () => ($('#endpoint').value || '').replace(/\/+$/,'');
+const token = () => $('#token').value.trim();
+const hAuth = () => ({ 'Authorization': 'Bearer ' + token() });
+
+async function api(path, opts={}) {
+  const r = await fetch(base()+path, opts);
+  if (!r.ok) throw new Error((await r.text()) || ('HTTP '+r.status));
+  return r;
+}
+
+$('#guardar').onclick = async () => {
+  LS.setItem('endpoint', $('#endpoint').value);
+  LS.setItem('token', $('#token').value);
+  $('#conx').textContent = 'Comprobando…';
+  try {
+    await api('/salud');
+    await cargarVoces();
+    $('#conx').textContent = '✅ Conectado.';
+  } catch(e) { $('#conx').textContent = '❌ ' + e.message; }
+};
+
+async function cargarVoces() {
+  const r = await api('/voces', { headers: hAuth() });
+  const lista = await r.json();
+  const sel = $('#voz');
+  sel.innerHTML = lista.length
+    ? lista.map(v => `<option>${v}</option>`).join('')
+    : '<option value="">— sin voces aún —</option>';
+}
+
+$('#subirvoz').onclick = async () => {
+  const f = $('#vozfile').files[0];
+  if (!f) return $('#vozmsg').textContent = 'Elige un archivo primero.';
+  $('#vozmsg').textContent = 'Subiendo…';
+  try {
+    const fd = new FormData(); fd.append('archivo', f);
+    await api('/voces', { method:'POST', headers: hAuth(), body: fd });
+    await cargarVoces();
+    $('#voz').value = f.name;
+    $('#vozmsg').textContent = '✅ Voz subida.';
+  } catch(e) { $('#vozmsg').textContent = '❌ ' + e.message; }
+};
+
+$('#producir').onclick = async () => {
+  const man = $('#manuscrito').files[0];
+  if (!man)             return alert('Falta el manuscrito .md');
+  if (!$('#title').value) return alert('Falta el título');
+  if (!$('#voz').value)  return alert('Elige o sube una voz');
+  const fd = new FormData();
+  fd.append('manuscrito', man);
+  fd.append('title', $('#title').value);
+  fd.append('author', $('#author').value);
+  fd.append('voz', $('#voz').value);
+  fd.append('preset', $('#preset').value);
+  $('#producir').disabled = true;
+  try {
+    const r = await api('/crear', { method:'POST', headers: hAuth(), body: fd });
+    jobId = (await r.json()).job_id;
+    $('#panel').style.display = 'block';
+    $('#panel').scrollIntoView({behavior:'smooth'});
+    seguir();
+  } catch(e) { alert('Error: ' + e.message); }
+  $('#producir').disabled = false;
+};
+
+const ETAPAS = { encolado:['Encolado…',10], guion:['Preparando el guion…',25],
+                 produciendo:['Grabando capítulos (lo más largo)…',70],
+                 masterizando:['Masterizando…',90], listo:['¡Listo!',100], error:['Error',100] };
+
+function seguir() {
+  clearInterval(timer);
+  const tick = async () => {
+    try {
+      const st = await (await api('/estado/'+jobId, { headers: hAuth() })).json();
+      const [txt, pct] = ETAPAS[st.estado] || [st.estado, 50];
+      $('#estado').textContent = txt;
+      $('#barra').style.width = pct + '%';
+      $('#detalle').textContent = st.archivos ? (st.archivos.length + ' pistas') : ('id: '+jobId);
+      if (st.estado === 'listo') {
+        clearInterval(timer);
+        $('#descarga').innerHTML =
+          `<a class="dl" href="${base()}/descargar/${jobId}?token=${encodeURIComponent(token())}">⬇ Descargar audiolibro (.zip)</a>`;
+      }
+      if (st.estado === 'error') {
+        clearInterval(timer);
+        $('#errbox').style.display = 'block';
+        $('#err').textContent = st.error || 'desconocido';
+      }
+    } catch(e) { /* reintenta en el siguiente tick */ }
+  };
+  tick();
+  timer = setInterval(tick, 15000);
+}
+</script>
+</body>
+</html>
