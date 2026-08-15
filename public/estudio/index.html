@@ -160,10 +160,7 @@
 const $ = s => document.querySelector(s);
 const LS = localStorage;
 const VOZ = 'ref_tux_limpia.wav';
-const JOBKEY = 'job';
 const RATE = 1.10, FREE = 30;
-let job = null; try { job = JSON.parse(LS.getItem(JOBKEY) || 'null'); } catch(e){}
-let pollTimer = null, tickTimer = null;
 
 $('#endpoint').value = LS.getItem('endpoint') || 'https://davidamigosanchez--estudio-audiolibros-api.modal.run';
 $('#token').value    = LS.getItem('token') || '';
@@ -223,7 +220,7 @@ $('#guardar').onclick = async () => {
   LS.setItem('endpoint', $('#endpoint').value);
   LS.setItem('token', $('#token').value);
   $('#conx').textContent = 'Comprobando…';
-  try { await api('/salud'); $('#conx').textContent = '✅ Conectado.'; cargarHist(); }
+  try { await api('/salud'); $('#conx').textContent = '✅ Conectado.'; iniciarBucle(); }
   catch(e) { $('#conx').textContent = '❌ ' + e.message; }
 };
 
@@ -263,11 +260,9 @@ async function lanzar(solo){
   if (cov) fd.append('portada', cov);
   $('#producir').disabled = $('#muestra').disabled = true;
   try {
-    const r = await api('/crear', { method:'POST', headers: hAuth(), body: fd });
-    const { job_id } = await r.json();
-    job = { id: job_id, title: titulo, launchedAt: Date.now(), done: false };
-    LS.setItem(JOBKEY, JSON.stringify(job));
-    arrancar(); cargarHist();
+    await api('/crear', { method:'POST', headers: hAuth(), body: fd });
+    $('#manuscrito').value=''; $('#portada').value=''; $('#estim').textContent='';
+    refrescarTodo();
   } catch(e) { alert('Error: ' + e.message); }
   $('#producir').disabled = $('#muestra').disabled = false;
 }
@@ -337,49 +332,21 @@ $('#colaGo').onclick = async () => {
   }
   try { await api('/arrancar-cola', { method:'POST', headers: hAuth() }); } catch(e){}
   cola = []; renderCola();
-  $('#colaMsg').textContent = `✅ ${n} libro(s) en cola. Se producen en fila; síguelos en el Historial.`;
-  cargarHist();
+  $('#colaMsg').textContent = `✅ ${n} libro(s) en cola. Se producen en fila; míralos en Producción/Historial.`;
+  refrescarTodo();
   $('#colaGo').disabled = false;
 };
 
-window.limpiar = () => {
-  LS.removeItem(JOBKEY); job = null;
-  clearTimeout(pollTimer); clearInterval(tickTimer);
-  $('#panel').style.display = 'none';
-  $('#descarga').innerHTML = ''; $('#acciones').innerHTML = ''; $('#errbox').style.display = 'none';
-};
-window.cancelar = async () => {
-  if (!job || !confirm('¿Cancelar la producción en marcha?')) return;
-  try { await api('/cancelar/'+job.id, { method:'POST', headers: hAuth() }); } catch(e){}
-};
-window.reintentar = async () => {
-  if (!job) return;
-  try {
-    await api('/reintentar/'+job.id, { method:'POST', headers: hAuth() });
-    job.done = false; job.launchedAt = Date.now(); LS.setItem(JOBKEY, JSON.stringify(job));
-    arrancar();
-  } catch(e) { alert('No se pudo reintentar: ' + e.message); }
+window.cancelar = async (id) => {
+  if (!id || !confirm('¿Cancelar la producción en marcha?')) return;
+  try { await api('/cancelar/'+id, { method:'POST', headers: hAuth() }); } catch(e){}
+  refrescarTodo();
 };
 
 const ETAPAS = { encolado:['En cola…',6], guion:['Preparando el guion…',14],
                  produciendo:['Grabando capítulos…',null], masterizando:['Masterizando…',96],
                  listo:['✅ ¡Listo!',100], error:['❌ Error',100], cancelado:['⏹ Cancelado',100] };
-const TERMINAL = ['listo','error','cancelado'];
-const OTRO = `<button class="sec mini" onclick="limpiar()">Producir otro</button>`;
-const REINTENTAR = `<button class="mini" onclick="reintentar()">↻ Reintentar</button>`;
-
-function arrancar(){
-  $('#panel').style.display = 'block';
-  $('#panelTit').textContent = 'Progreso · ' + (job.title || '');
-  $('#descarga').innerHTML = ''; $('#acciones').innerHTML = ''; $('#errbox').style.display = 'none';
-  if (!job.done) {
-    clearInterval(tickTimer);
-    tickTimer = setInterval(() => {
-      if (job && !job.done) $('#tiempo').textContent = '⏱ ' + fmtReloj((Date.now()-job.launchedAt)/1000);
-    }, 1000);
-  }
-  poll();
-}
+const ACTIVOS = { produciendo:0, masterizando:1, guion:2, encolado:3 };
 
 function playerHTML(jobId, archivos){
   if (!archivos || !archivos.length) return '';
@@ -389,54 +356,40 @@ function playerHTML(jobId, archivos){
   ).join('');
 }
 
-function render(st){
-  const [txt, basePct] = ETAPAS[st.estado] || [st.estado, 50];
+// --- Panel: sigue a la producción que corre AHORA (no a un trabajo fijo) ---
+function panelActivo(items){
+  const act = items
+    .filter(t => ACTIVOS.hasOwnProperty(t.estado))
+    .sort((a,b) => (ACTIVOS[a.estado]-ACTIVOS[b.estado]) || ((a.creado||0)-(b.creado||0)))[0];
+  if (!act) { $('#panel').style.display = 'none'; return; }
+  $('#panel').style.display = 'block';
+  $('#panelTit').textContent = 'Producción en curso · ' + (act.title || '');
+  const [txt, basePct] = ETAPAS[act.estado] || [act.estado, 50];
   $('#estado').textContent = txt;
-  const producing = st.estado === 'produciendo';
-  const activo = !TERMINAL.includes(st.estado);
-  $('#barraBox').classList.toggle('anim', activo && st.estado !== 'encolado');
+  const producing = act.estado === 'produciendo';
+  $('#barraBox').classList.toggle('anim', act.estado !== 'encolado');
   let pct = basePct;
-  if (producing && st.total) pct = 14 + Math.round((st.hechas/st.total)*80);
+  if (producing && act.total) pct = 14 + Math.round((act.hechas/act.total)*80);
   if (pct == null) pct = 40;
   $('#barra').style.width = pct + '%';
-  if (st.total) {
-    $('#pistas').innerHTML = (st.estado==='listo')
-      ? `<b>${st.total}</b> pista${st.total==1?'':'s'}`
-      : `Capítulo <b>${Math.min(st.hechas+1, st.total)}</b> de <b>${st.total}</b>`;
-  } else { $('#pistas').textContent = ''; }
-  $('#porcap').innerHTML = st.seg_por_pista ? `≈ <b>${fmt(st.seg_por_pista)}</b> / capítulo` : '';
-  $('#eta').innerHTML = (producing && st.eta_seg>0) ? `faltan ~<b>${fmtLargo(st.eta_seg)}</b>` : '';
-  if (st.estado==='listo' && st.tiempo_total_seg!=null)
-    $('#tiempo').innerHTML = `⏱ <b>${fmtLargo(st.tiempo_total_seg)}</b> en total`;
-  if (activo) $('#acciones').innerHTML = `<button class="sec mini" onclick="cancelar()">✕ Cancelar</button>`;
+  $('#pistas').innerHTML = act.total ? `Capítulo <b>${Math.min(act.hechas+1, act.total)}</b> de <b>${act.total}</b>` : '';
+  $('#porcap').innerHTML = act.seg_por_pista ? `≈ <b>${fmt(act.seg_por_pista)}</b> / capítulo` : '';
+  $('#eta').innerHTML = (producing && act.eta_seg>0) ? `faltan ~<b>${fmtLargo(act.eta_seg)}</b>` : '';
+  const enCola = items.filter(t => t.estado === 'en_cola').length;
+  $('#tiempo').innerHTML = enCola ? `<span class="muted">+${enCola} en cola detrás</span>` : '';
+  $('#descarga').innerHTML = ''; $('#errbox').style.display = 'none';
+  $('#acciones').innerHTML = `<button class="sec mini" onclick="cancelar('${act.job_id}')">✕ Cancelar</button>`;
 }
 
-async function poll(){
-  if (!job) return;
-  try {
-    const st = await (await api('/estado/'+job.id, { headers: hAuth() })).json();
-    render(st);
-    if (TERMINAL.includes(st.estado)) {
-      job.done = true; LS.setItem(JOBKEY, JSON.stringify(job));
-      clearInterval(tickTimer); clearTimeout(pollTimer);
-      $('#barraBox').classList.remove('anim');
-      if (st.estado === 'listo') {
-        $('#descarga').innerHTML =
-          `<a class="dl" href="${base()}/descargar/${job.id}?${qtok()}">⬇ Descargar audiolibro (.zip)</a>`+
-          `<details><summary>▶ Escuchar en la web</summary>${playerHTML(job.id, st.archivos)}</details>`;
-        $('#acciones').innerHTML = OTRO;
-        avisar('✅ Listo: ' + (job.title||''));
-      } else {
-        $('#errbox').style.display = (st.estado==='error') ? 'block' : 'none';
-        $('#err').textContent = st.error || '';
-        $('#acciones').innerHTML = REINTENTAR + OTRO;
-        avisar((st.estado==='error'?'❌ Error en ':'⏹ Cancelado: ') + (job.title||''));
-      }
-      cargarHist();
-      return;
-    }
-  } catch(e) { /* reintenta */ }
-  pollTimer = setTimeout(poll, 8000);
+// --- Aviso al terminar: detecta transiciones a listo/error ---
+let ultimoEstado = {};
+function detectarAvisos(items){
+  items.forEach(t => {
+    const prev = ultimoEstado[t.job_id];
+    if (prev && prev !== t.estado && (t.estado==='listo' || t.estado==='error'))
+      avisar((t.estado==='listo' ? '✅ Listo: ' : '❌ Error en ') + (t.title||''));
+    ultimoEstado[t.job_id] = t.estado;
+  });
 }
 
 // --- Coste ---
@@ -476,55 +429,66 @@ async function cargarCosteReal(){
 $('#refCoste').onclick = cargarCosteReal;
 
 // --- Historial ---
-$('#refrescar').onclick = cargarHist;
+$('#refrescar').onclick = refrescarTodo;
 window.borrar = async (id) => {
   if (!confirm('¿Eliminar este audiolibro del historial?\n\nSe borra el audio para liberar espacio (no se podrá recuperar), pero el coste ya gastado seguirá contando en el total del mes.')) return;
-  try { await api('/ocultar/'+id, { method:'POST', headers: hAuth() }); cargarHist(); }
+  try { await api('/ocultar/'+id, { method:'POST', headers: hAuth() }); refrescarTodo(); }
   catch(e) { alert('No se pudo eliminar: ' + e.message); }
 };
 window.reintentarHist = async (id) => {
-  try { await api('/reintentar/'+id, { method:'POST', headers: hAuth() }); cargarHist(); alert('Relanzado. Míralo en Progreso o vuelve a abrirlo.'); }
+  try { await api('/reintentar/'+id, { method:'POST', headers: hAuth() }); refrescarTodo(); }
   catch(e) { alert('No se pudo: ' + e.message); }
 };
 
-let histRetry = 0;
-async function cargarHist(){
+function pintarHistorial(items){
   const cont = $('#hist');
-  if (!token()) { cont.innerHTML = '<p class="empty">Conéctate para ver tus audiolibros.</p>'; return; }
+  const visibles = items.filter(t => !t.oculto);
+  if (!visibles.length) { cont.innerHTML = '<p class="empty">No hay audiolibros en el historial.</p>'; return; }
+  cont.innerHTML = visibles.map(t => {
+    const ic = t.estado==='listo' ? '✅' : t.estado==='error' ? '❌' : t.estado==='cancelado' ? '⏹' : '⏳';
+    const LBL = { en_cola:'en cola', encolado:'en cola', guion:'preparando…', masterizando:'masterizando…', cancelado:'cancelado', error:'error', listo:'listo' };
+    const estadoTxt = (t.estado==='produciendo' && t.total) ? `grabando ${t.hechas}/${t.total}` : (LBL[t.estado]||t.estado);
+    const coste = t.tiempo_total_seg ? `≈ ${(t.tiempo_total_seg/3600*RATE).toFixed(2)} $` : '';
+    const meta = [fmtFecha(t.creado), t.total ? t.total+' pistas' : estadoTxt, coste].filter(Boolean).join(' · ');
+    const del = `<button class="mini sec" onclick="borrar('${t.job_id}')">🗑 Eliminar</button>`;
+    let acc = '';
+    if (t.estado==='listo') {
+      acc = `<div class="job-a">`+
+            `<a class="btn" style="background:var(--ok);color:#04140a" href="${base()}/descargar/${t.job_id}?${qtok()}">⬇ .zip</a>`+
+            del + `</div>`+
+            `<details><summary>▶ Escuchar</summary>${playerHTML(t.job_id, t.archivos)}</details>`;
+    } else if (t.estado==='error' || t.estado==='cancelado') {
+      acc = `<div class="job-a"><button class="mini" onclick="reintentarHist('${t.job_id}')">↻ Reintentar</button>${del}</div>`;
+    }
+    return `<div class="job"><div class="job-t">${ic} ${t.title||'(sin título)'}</div>`+
+           `<div class="job-m">${meta}</div>${acc}</div>`;
+  }).join('');
+}
+
+// --- Bucle vivo: /trabajos mueve panel + historial + coste ---
+let histRetry = 0, refrescoTimer = null;
+async function refrescarTodo(){
+  if (!token()) { $('#hist').innerHTML = '<p class="empty">Conéctate para ver tus audiolibros.</p>'; return; }
   try {
     const items = await (await api('/trabajos', { headers: hAuth() })).json();
     histRetry = 0;
-    pintarCoste(items);      // estimación instantánea…
-    cargarCosteReal();       // …y encima el gasto REAL de Modal si responde
-    const visibles = items.filter(t => !t.oculto);
-    if (!visibles.length) { cont.innerHTML = '<p class="empty">No hay audiolibros en el historial.</p>'; return; }
-    cont.innerHTML = visibles.map(t => {
-      const ic = t.estado==='listo' ? '✅' : t.estado==='error' ? '❌' : t.estado==='cancelado' ? '⏹' : '⏳';
-      const LBL = { en_cola:'en cola', encolado:'en cola', guion:'preparando…', produciendo:'grabando…', masterizando:'masterizando…', cancelado:'cancelado', error:'error', listo:'listo' };
-      const coste = t.tiempo_total_seg ? `≈ ${(t.tiempo_total_seg/3600*RATE).toFixed(2)} $` : '';
-      const meta = [fmtFecha(t.creado), t.total ? t.total+' pistas' : (LBL[t.estado]||t.estado), coste].filter(Boolean).join(' · ');
-      const del = `<button class="mini sec" onclick="borrar('${t.job_id}')">🗑 Eliminar</button>`;
-      let acc = '';
-      if (t.estado==='listo') {
-        acc = `<div class="job-a">`+
-              `<a class="btn" style="background:var(--ok);color:#04140a" href="${base()}/descargar/${t.job_id}?${qtok()}">⬇ .zip</a>`+
-              del + `</div>`+
-              `<details><summary>▶ Escuchar</summary>${playerHTML(t.job_id, t.archivos)}</details>`;
-      } else if (t.estado==='error' || t.estado==='cancelado') {
-        acc = `<div class="job-a"><button class="mini" onclick="reintentarHist('${t.job_id}')">↻ Reintentar</button>${del}</div>`;
-      }
-      return `<div class="job"><div class="job-t">${ic} ${t.title||'(sin título)'}</div>`+
-             `<div class="job-m">${meta}</div>${acc}</div>`;
-    }).join('');
+    detectarAvisos(items);
+    panelActivo(items);
+    pintarHistorial(items);
+    pintarCoste(items); cargarCosteReal();
   } catch(e) {
-    if (histRetry++ < 1) { setTimeout(cargarHist, 2500); return; }   // reintento por arranque en frío
-    cont.innerHTML = `<p class="empty">No se pudo cargar: ${e.message}</p>`;
+    if (histRetry++ < 1) { setTimeout(refrescarTodo, 2500); return; }
+    $('#hist').innerHTML = `<p class="empty">No se pudo cargar: ${e.message}</p>`;
   }
+}
+function iniciarBucle(){
+  clearTimeout(refrescoTimer);
+  const tick = async () => { await refrescarTodo(); refrescoTimer = setTimeout(tick, 9000); };
+  tick();
 }
 
 // --- Arranque ---
-if (job) arrancar();
-if (token()) cargarHist();
+if (token()) iniciarBucle();
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script>
 </body>
