@@ -308,24 +308,33 @@ function pintarCoste(items){
 
 // --- Historial ---
 $('#refrescar').onclick = cargarHist;
+window.borrar = async (id) => {
+  if (!confirm('¿Eliminar este audiolibro del historial?\n\nSe borra el audio para liberar espacio (no se podrá recuperar), pero el coste ya gastado seguirá contando en el total del mes.')) return;
+  try { await api('/ocultar/'+id, { method:'POST', headers: hAuth() }); cargarHist(); }
+  catch(e) { alert('No se pudo eliminar: ' + e.message); }
+};
 async function cargarHist(){
   const cont = $('#hist');
   if (!token()) { cont.innerHTML = '<p class="empty">Conéctate para ver tus audiolibros.</p>'; return; }
   try {
     const items = await (await api('/trabajos', { headers: hAuth() })).json();
-    pintarCoste(items);
-    if (!items.length) { cont.innerHTML = '<p class="empty">Aún no has producido ningún audiolibro.</p>'; return; }
-    cont.innerHTML = items.map(t => {
+    pintarCoste(items);                       // cuenta TODOS (ocultos incluidos) → el coste no baja
+    const visibles = items.filter(t => !t.oculto);
+    if (!visibles.length) { cont.innerHTML = '<p class="empty">No hay audiolibros en el historial.</p>'; return; }
+    cont.innerHTML = visibles.map(t => {
       const ic = t.estado==='listo' ? '✅' : t.estado==='error' ? '❌' : '⏳';
       const meta = [fmtFecha(t.creado), t.total ? t.total+' pistas' : t.estado].filter(Boolean).join(' · ');
+      const del = (t.estado==='listo' || t.estado==='error')
+        ? `<button class="mini sec" onclick="borrar('${t.job_id}')">🗑 Eliminar</button>` : '';
       let acc = '';
       if (t.estado==='listo') {
         acc = `<div class="job-a">`+
               `<a class="btn" style="background:var(--ok);color:#04140a" href="${base()}/descargar/${t.job_id}?${qtok()}">⬇ .zip</a>`+
+              del +
               `</div>`+
               `<details><summary>▶ Escuchar</summary>${playerHTML(t.job_id, t.archivos)}</details>`;
       } else if (t.estado==='error') {
-        acc = `<div class="job-m" style="color:var(--err)">Falló</div>`;
+        acc = `<div class="job-a"><span class="job-m" style="color:var(--err)">Falló</span>${del}</div>`;
       }
       return `<div class="job"><div class="job-t">${ic} ${t.title||'(sin título)'}</div>`+
              `<div class="job-m">${meta}</div>${acc}</div>`;
