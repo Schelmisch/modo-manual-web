@@ -178,6 +178,19 @@ async function api(path, opts={}) {
   return r;
 }
 function fmt(s){ s=Math.max(0,Math.round(s)); const m=Math.floor(s/60); return m+':'+String(s%60).padStart(2,'0'); }
+function fmtLargo(s){   // "menos de 1 min" · "49 min" · "2 h 10 min"
+  s=Math.max(0,Math.round(s));
+  if (s<60) return 'menos de 1 min';
+  const min=Math.round(s/60);
+  if (min<60) return min+' min';
+  const h=Math.floor(min/60), m=min%60;
+  return m ? `${h} h ${m} min` : `${h} h`;
+}
+function fmtReloj(s){   // cronómetro: "48:56" · "1:05:00"
+  s=Math.max(0,Math.round(s)); const p=n=>String(n).padStart(2,'0');
+  const h=Math.floor(s/3600), m=Math.floor((s%3600)/60), ss=s%60;
+  return h ? `${h}:${p(m)}:${p(ss)}` : `${m}:${p(ss)}`;
+}
 function fmtFecha(cr){ if(!cr) return ''; const d=new Date(cr*1000);
   return d.toLocaleString('es-ES',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}); }
 
@@ -362,7 +375,7 @@ function arrancar(){
   if (!job.done) {
     clearInterval(tickTimer);
     tickTimer = setInterval(() => {
-      if (job && !job.done) $('#tiempo').textContent = '⏱ ' + fmt((Date.now()-job.launchedAt)/1000);
+      if (job && !job.done) $('#tiempo').textContent = '⏱ ' + fmtReloj((Date.now()-job.launchedAt)/1000);
     }, 1000);
   }
   poll();
@@ -392,9 +405,9 @@ function render(st){
       : `Capítulo <b>${Math.min(st.hechas+1, st.total)}</b> de <b>${st.total}</b>`;
   } else { $('#pistas').textContent = ''; }
   $('#porcap').innerHTML = st.seg_por_pista ? `≈ <b>${fmt(st.seg_por_pista)}</b> / capítulo` : '';
-  $('#eta').innerHTML = (producing && st.eta_seg>0) ? `faltan ~<b>${fmt(st.eta_seg)}</b>` : '';
+  $('#eta').innerHTML = (producing && st.eta_seg>0) ? `faltan ~<b>${fmtLargo(st.eta_seg)}</b>` : '';
   if (st.estado==='listo' && st.tiempo_total_seg!=null)
-    $('#tiempo').innerHTML = `⏱ <b>${fmt(st.tiempo_total_seg)}</b> total`;
+    $('#tiempo').innerHTML = `⏱ <b>${fmtLargo(st.tiempo_total_seg)}</b> en total`;
   if (activo) $('#acciones').innerHTML = `<button class="sec mini" onclick="cancelar()">✕ Cancelar</button>`;
 }
 
