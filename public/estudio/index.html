@@ -14,7 +14,7 @@
 <title>Estudio de audiolibros</title>
 <style>
   :root { --bg:#0e1116; --card:#171b22; --line:#262c36; --fg:#e6e9ef; --mut:#9aa4b2;
-          --acc:#6ea8fe; --ok:#3fb950; --err:#f85149; }
+          --acc:#6ea8fe; --ok:#3fb950; --err:#f85149; --warn:#d29922; }
   * { box-sizing:border-box; }
   body { margin:0; font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
          background:var(--bg); color:var(--fg); }
@@ -91,6 +91,8 @@
     <label>Manuscrito (.md)</label>
     <input id="manuscrito" type="file" accept=".md,.markdown,text/markdown">
     <p class="muted" id="estim"></p>
+    <label>Portada (jpg/png, opcional — se incrusta en el audio)</label>
+    <input id="portada" type="file" accept="image/*">
     <div class="row">
       <div><label>Título</label><input id="title" placeholder="Modo manual"></div>
       <div><label>Autor</label><input id="author" placeholder="David…"></div>
@@ -100,7 +102,8 @@
       <option value="google">Google Play (recomendado)</option>
       <option value="acx">ACX / Audible</option>
     </select>
-    <button id="producir">▶ Producir audiolibro</button>
+    <button id="producir">▶ Producir libro entero</button>
+    <button id="muestra" class="sec">🎧 Producir solo una muestra (cap. 1)</button>
   </div>
 
   <div class="card" id="panel" style="display:none">
@@ -114,7 +117,7 @@
       <span id="eta"></span>
     </div>
     <div id="descarga"></div>
-    <button class="sec" id="limpiar" style="display:none">Producir otro</button>
+    <div id="acciones" class="job-a"></div>
     <details id="errbox" style="display:none"><summary>Ver detalle del error</summary><pre id="err"></pre></details>
   </div>
 
@@ -137,15 +140,14 @@ const $ = s => document.querySelector(s);
 const LS = localStorage;
 const VOZ = 'ref_tux_limpia.wav';
 const JOBKEY = 'job';
-const RATE = 1.10;   // $/h de la GPU A10G (ajústalo si cambias de GPU en modal_app.py)
-const FREE = 30;     // crédito gratis de Modal al mes ($)
+const RATE = 1.10, FREE = 30;
 let job = null; try { job = JSON.parse(LS.getItem(JOBKEY) || 'null'); } catch(e){}
 let pollTimer = null, tickTimer = null;
 
 $('#endpoint').value = LS.getItem('endpoint') || 'https://davidamigosanchez--estudio-audiolibros-api.modal.run';
 $('#token').value    = LS.getItem('token') || '';
 const base  = () => ($('#endpoint').value || '').replace(/\/+$/,'');
-const token = () => $('#token').value.trim();
+const token = () => ($('#token').value || LS.getItem('token') || '').trim();
 const hAuth = () => ({ 'Authorization': 'Bearer ' + token() });
 const qtok  = () => 'token=' + encodeURIComponent(token());
 
@@ -158,6 +160,30 @@ function fmt(s){ s=Math.max(0,Math.round(s)); const m=Math.floor(s/60); return m
 function fmtFecha(cr){ if(!cr) return ''; const d=new Date(cr*1000);
   return d.toLocaleString('es-ES',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}); }
 
+// --- Aviso al terminar (notificación + sonido) ---
+let actx = null;
+function pedirAviso(){
+  try { actx = actx || new (window.AudioContext||window.webkitAudioContext)(); if (actx.state==='suspended') actx.resume(); } catch(e){}
+  try { if ('Notification' in window && Notification.permission==='default') Notification.requestPermission(); } catch(e){}
+}
+function beep(){
+  if (!actx) return;
+  [0,0.18].forEach((t,i) => {
+    const o=actx.createOscillator(), g=actx.createGain();
+    o.connect(g); g.connect(actx.destination);
+    o.type='sine'; o.frequency.value = i ? 1175 : 880;
+    const s=actx.currentTime+t;
+    g.gain.setValueAtTime(0.0001, s);
+    g.gain.exponentialRampToValueAtTime(0.25, s+0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, s+0.16);
+    o.start(s); o.stop(s+0.17);
+  });
+}
+function avisar(txt){
+  try { if ('Notification' in window && Notification.permission==='granted') new Notification('Estudio de audiolibros', { body: txt, icon: 'icon-192.png' }); } catch(e){}
+  beep();
+}
+
 // --- Conexión ---
 $('#guardar').onclick = async () => {
   LS.setItem('endpoint', $('#endpoint').value);
@@ -167,7 +193,7 @@ $('#guardar').onclick = async () => {
   catch(e) { $('#conx').textContent = '❌ ' + e.message; }
 };
 
-// --- Estimación al elegir el manuscrito ---
+// --- Estimación ---
 $('#manuscrito').onchange = async () => {
   const f = $('#manuscrito').files[0];
   if (!f) { $('#estim').textContent=''; return; }
@@ -177,7 +203,7 @@ $('#manuscrito').onchange = async () => {
   }
   try {
     const txt = await f.text();
-    const caps = Math.max(1, (txt.match(/^#\s+\S/gm)||[]).length - 1);  // 1ª # es portada
+    const caps = Math.max(1, (txt.match(/^#\s+\S/gm)||[]).length - 1);
     const words = (txt.match(/\S+/g)||[]).length;
     const audioMin = Math.max(1, Math.round(words/150));
     const prodMin = Math.round(audioMin*1.1 + caps*0.5 + 1);
@@ -185,45 +211,65 @@ $('#manuscrito').onchange = async () => {
   } catch(e){ $('#estim').textContent=''; }
 };
 
-// --- Producir ---
-$('#producir').onclick = async () => {
+// --- Lanzar (libro entero o muestra) ---
+async function lanzar(solo){
   const man = $('#manuscrito').files[0];
   if (!man)               return alert('Falta el manuscrito .md');
   if (!$('#title').value) return alert('Falta el título');
+  pedirAviso();
+  const titulo = $('#title').value + (solo ? ' (muestra)' : '');
   const fd = new FormData();
   fd.append('manuscrito', man);
-  fd.append('title', $('#title').value);
+  fd.append('title', titulo);
   fd.append('author', $('#author').value);
   fd.append('voz', VOZ);
   fd.append('preset', $('#preset').value);
-  $('#producir').disabled = true;
+  fd.append('solo', solo ? 1 : 0);
+  const cov = $('#portada').files[0];
+  if (cov) fd.append('portada', cov);
+  $('#producir').disabled = $('#muestra').disabled = true;
   try {
     const r = await api('/crear', { method:'POST', headers: hAuth(), body: fd });
     const { job_id } = await r.json();
-    job = { id: job_id, title: $('#title').value, launchedAt: Date.now(), done: false };
+    job = { id: job_id, title: titulo, launchedAt: Date.now(), done: false };
     LS.setItem(JOBKEY, JSON.stringify(job));
     arrancar(); cargarHist();
   } catch(e) { alert('Error: ' + e.message); }
-  $('#producir').disabled = false;
-};
+  $('#producir').disabled = $('#muestra').disabled = false;
+}
+$('#producir').onclick = () => lanzar(0);
+$('#muestra').onclick  = () => lanzar(1);
 
-$('#limpiar').onclick = () => {
+window.limpiar = () => {
   LS.removeItem(JOBKEY); job = null;
   clearTimeout(pollTimer); clearInterval(tickTimer);
   $('#panel').style.display = 'none';
-  $('#descarga').innerHTML = ''; $('#limpiar').style.display = 'none';
-  $('#errbox').style.display = 'none';
+  $('#descarga').innerHTML = ''; $('#acciones').innerHTML = ''; $('#errbox').style.display = 'none';
+};
+window.cancelar = async () => {
+  if (!job || !confirm('¿Cancelar la producción en marcha?')) return;
+  try { await api('/cancelar/'+job.id, { method:'POST', headers: hAuth() }); } catch(e){}
+};
+window.reintentar = async () => {
+  if (!job) return;
+  try {
+    await api('/reintentar/'+job.id, { method:'POST', headers: hAuth() });
+    job.done = false; job.launchedAt = Date.now(); LS.setItem(JOBKEY, JSON.stringify(job));
+    arrancar();
+  } catch(e) { alert('No se pudo reintentar: ' + e.message); }
 };
 
 const ETAPAS = { encolado:['En cola…',6], guion:['Preparando el guion…',14],
-                 produciendo:['Grabando capítulos…',null],
-                 masterizando:['Masterizando…',96], listo:['✅ ¡Listo!',100], error:['❌ Error',100] };
+                 produciendo:['Grabando capítulos…',null], masterizando:['Masterizando…',96],
+                 listo:['✅ ¡Listo!',100], error:['❌ Error',100], cancelado:['⏹ Cancelado',100] };
+const TERMINAL = ['listo','error','cancelado'];
+const OTRO = `<button class="sec mini" onclick="limpiar()">Producir otro</button>`;
+const REINTENTAR = `<button class="mini" onclick="reintentar()">↻ Reintentar</button>`;
 
 function arrancar(){
   $('#panel').style.display = 'block';
   $('#panelTit').textContent = 'Progreso · ' + (job.title || '');
-  $('#descarga').innerHTML = ''; $('#limpiar').style.display = 'none';
-  $('#errbox').style.display = 'none';
+  $('#descarga').innerHTML = ''; $('#acciones').innerHTML = ''; $('#errbox').style.display = 'none';
   if (!job.done) {
     clearInterval(tickTimer);
     tickTimer = setInterval(() => {
@@ -233,7 +279,6 @@ function arrancar(){
   poll();
 }
 
-// --- Reproductor: HTML de <audio> por pista ---
 function playerHTML(jobId, archivos){
   if (!archivos || !archivos.length) return '';
   return archivos.map(n =>
@@ -246,20 +291,22 @@ function render(st){
   const [txt, basePct] = ETAPAS[st.estado] || [st.estado, 50];
   $('#estado').textContent = txt;
   const producing = st.estado === 'produciendo';
-  $('#barraBox').classList.toggle('anim', producing || st.estado==='guion' || st.estado==='masterizando');
+  const activo = !TERMINAL.includes(st.estado);
+  $('#barraBox').classList.toggle('anim', activo && st.estado !== 'encolado');
   let pct = basePct;
   if (producing && st.total) pct = 14 + Math.round((st.hechas/st.total)*80);
   if (pct == null) pct = 40;
   $('#barra').style.width = pct + '%';
   if (st.total) {
     $('#pistas').innerHTML = (st.estado==='listo')
-      ? `<b>${st.total}</b> pistas`
+      ? `<b>${st.total}</b> pista${st.total==1?'':'s'}`
       : `Capítulo <b>${Math.min(st.hechas+1, st.total)}</b> de <b>${st.total}</b>`;
   } else { $('#pistas').textContent = ''; }
   $('#porcap').innerHTML = st.seg_por_pista ? `≈ <b>${fmt(st.seg_por_pista)}</b> / capítulo` : '';
   $('#eta').innerHTML = (producing && st.eta_seg>0) ? `faltan ~<b>${fmt(st.eta_seg)}</b>` : '';
   if (st.estado==='listo' && st.tiempo_total_seg!=null)
     $('#tiempo').innerHTML = `⏱ <b>${fmt(st.tiempo_total_seg)}</b> total`;
+  if (activo) $('#acciones').innerHTML = `<button class="sec mini" onclick="cancelar()">✕ Cancelar</button>`;
 }
 
 async function poll(){
@@ -267,18 +314,21 @@ async function poll(){
   try {
     const st = await (await api('/estado/'+job.id, { headers: hAuth() })).json();
     render(st);
-    if (st.estado === 'listo' || st.estado === 'error') {
+    if (TERMINAL.includes(st.estado)) {
       job.done = true; LS.setItem(JOBKEY, JSON.stringify(job));
       clearInterval(tickTimer); clearTimeout(pollTimer);
       $('#barraBox').classList.remove('anim');
-      $('#limpiar').style.display = 'block';
       if (st.estado === 'listo') {
         $('#descarga').innerHTML =
           `<a class="dl" href="${base()}/descargar/${job.id}?${qtok()}">⬇ Descargar audiolibro (.zip)</a>`+
           `<details><summary>▶ Escuchar en la web</summary>${playerHTML(job.id, st.archivos)}</details>`;
+        $('#acciones').innerHTML = OTRO;
+        avisar('✅ Listo: ' + (job.title||''));
       } else {
-        $('#errbox').style.display = 'block';
-        $('#err').textContent = st.error || 'desconocido';
+        $('#errbox').style.display = (st.estado==='error') ? 'block' : 'none';
+        $('#err').textContent = st.error || '';
+        $('#acciones').innerHTML = REINTENTAR + OTRO;
+        avisar((st.estado==='error'?'❌ Error en ':'⏹ Cancelado: ') + (job.title||''));
       }
       cargarHist();
       return;
@@ -287,10 +337,9 @@ async function poll(){
   pollTimer = setTimeout(poll, 8000);
 }
 
-// --- Coste estimado del mes en curso ---
+// --- Coste ---
 function pintarCoste(items){
-  const now = new Date();
-  let sec = 0, n = 0;
+  const now = new Date(); let sec = 0, n = 0;
   items.forEach(t => {
     if (!t.creado || !t.tiempo_total_seg) return;
     const d = new Date(t.creado*1000);
@@ -313,40 +362,46 @@ window.borrar = async (id) => {
   try { await api('/ocultar/'+id, { method:'POST', headers: hAuth() }); cargarHist(); }
   catch(e) { alert('No se pudo eliminar: ' + e.message); }
 };
+window.reintentarHist = async (id) => {
+  try { await api('/reintentar/'+id, { method:'POST', headers: hAuth() }); cargarHist(); alert('Relanzado. Míralo en Progreso o vuelve a abrirlo.'); }
+  catch(e) { alert('No se pudo: ' + e.message); }
+};
+
+let histRetry = 0;
 async function cargarHist(){
   const cont = $('#hist');
   if (!token()) { cont.innerHTML = '<p class="empty">Conéctate para ver tus audiolibros.</p>'; return; }
   try {
     const items = await (await api('/trabajos', { headers: hAuth() })).json();
-    pintarCoste(items);                       // cuenta TODOS (ocultos incluidos) → el coste no baja
+    histRetry = 0;
+    pintarCoste(items);
     const visibles = items.filter(t => !t.oculto);
     if (!visibles.length) { cont.innerHTML = '<p class="empty">No hay audiolibros en el historial.</p>'; return; }
     cont.innerHTML = visibles.map(t => {
-      const ic = t.estado==='listo' ? '✅' : t.estado==='error' ? '❌' : '⏳';
+      const ic = t.estado==='listo' ? '✅' : t.estado==='error' ? '❌' : t.estado==='cancelado' ? '⏹' : '⏳';
       const meta = [fmtFecha(t.creado), t.total ? t.total+' pistas' : t.estado].filter(Boolean).join(' · ');
-      const del = (t.estado==='listo' || t.estado==='error')
-        ? `<button class="mini sec" onclick="borrar('${t.job_id}')">🗑 Eliminar</button>` : '';
+      const del = `<button class="mini sec" onclick="borrar('${t.job_id}')">🗑 Eliminar</button>`;
       let acc = '';
       if (t.estado==='listo') {
         acc = `<div class="job-a">`+
               `<a class="btn" style="background:var(--ok);color:#04140a" href="${base()}/descargar/${t.job_id}?${qtok()}">⬇ .zip</a>`+
-              del +
-              `</div>`+
+              del + `</div>`+
               `<details><summary>▶ Escuchar</summary>${playerHTML(t.job_id, t.archivos)}</details>`;
-      } else if (t.estado==='error') {
-        acc = `<div class="job-a"><span class="job-m" style="color:var(--err)">Falló</span>${del}</div>`;
+      } else if (t.estado==='error' || t.estado==='cancelado') {
+        acc = `<div class="job-a"><button class="mini" onclick="reintentarHist('${t.job_id}')">↻ Reintentar</button>${del}</div>`;
       }
       return `<div class="job"><div class="job-t">${ic} ${t.title||'(sin título)'}</div>`+
              `<div class="job-m">${meta}</div>${acc}</div>`;
     }).join('');
-  } catch(e) { cont.innerHTML = `<p class="empty">No se pudo cargar: ${e.message}</p>`; }
+  } catch(e) {
+    if (histRetry++ < 1) { setTimeout(cargarHist, 2500); return; }   // reintento por arranque en frío
+    cont.innerHTML = `<p class="empty">No se pudo cargar: ${e.message}</p>`;
+  }
 }
 
 // --- Arranque ---
 if (job) arrancar();
 if (token()) cargarHist();
-
-// --- PWA (instalar como app) ---
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script>
 </body>
