@@ -28,6 +28,8 @@
   button:disabled { opacity:.5; cursor:not-allowed; }
   .row { display:flex; gap:10px; } .row > * { flex:1; }
   .muted { color:var(--mut); font-size:.85rem; }
+  .voz { display:flex; align-items:center; gap:10px; font-weight:600; }
+  .voz .dot { width:10px; height:10px; border-radius:50%; background:var(--ok); }
   .estado { font-weight:600; }
   a.dl { display:block; text-align:center; text-decoration:none; background:var(--ok);
          color:#04140a; font-weight:700; padding:12px; border-radius:10px; margin-top:12px; }
@@ -54,13 +56,9 @@
   </div>
 
   <div class="card">
-    <h2>Voz de referencia</h2>
-    <label>Voz a usar</label>
-    <select id="voz"><option value="">— sin voces aún —</option></select>
-    <label>Subir una voz nueva (.wav de tu voz o de dominio público)</label>
-    <input id="vozfile" type="file" accept="audio/*">
-    <button class="sec" id="subirvoz">Subir voz</button>
-    <p class="muted" id="vozmsg"></p>
+    <h2>Voz del sello</h2>
+    <p class="voz"><span class="dot"></span> Tux · acabado natural</p>
+    <p class="muted">Todos los audiolibros se narran con esta voz.</p>
   </div>
 
   <div class="card">
@@ -92,6 +90,7 @@
 <script>
 const $ = s => document.querySelector(s);
 const LS = localStorage;
+const VOZ = 'ref_tux_limpia.wav';   // voz única del sello
 let jobId = null, timer = null;
 
 // --- persistencia de conexión ---
@@ -113,43 +112,19 @@ $('#guardar').onclick = async () => {
   $('#conx').textContent = 'Comprobando…';
   try {
     await api('/salud');
-    await cargarVoces();
     $('#conx').textContent = '✅ Conectado.';
   } catch(e) { $('#conx').textContent = '❌ ' + e.message; }
 };
 
-async function cargarVoces() {
-  const r = await api('/voces', { headers: hAuth() });
-  const lista = await r.json();
-  const sel = $('#voz');
-  sel.innerHTML = lista.length
-    ? lista.map(v => `<option>${v}</option>`).join('')
-    : '<option value="">— sin voces aún —</option>';
-}
-
-$('#subirvoz').onclick = async () => {
-  const f = $('#vozfile').files[0];
-  if (!f) return $('#vozmsg').textContent = 'Elige un archivo primero.';
-  $('#vozmsg').textContent = 'Subiendo…';
-  try {
-    const fd = new FormData(); fd.append('archivo', f);
-    await api('/voces', { method:'POST', headers: hAuth(), body: fd });
-    await cargarVoces();
-    $('#voz').value = f.name;
-    $('#vozmsg').textContent = '✅ Voz subida.';
-  } catch(e) { $('#vozmsg').textContent = '❌ ' + e.message; }
-};
-
 $('#producir').onclick = async () => {
   const man = $('#manuscrito').files[0];
-  if (!man)             return alert('Falta el manuscrito .md');
+  if (!man)               return alert('Falta el manuscrito .md');
   if (!$('#title').value) return alert('Falta el título');
-  if (!$('#voz').value)  return alert('Elige o sube una voz');
   const fd = new FormData();
   fd.append('manuscrito', man);
   fd.append('title', $('#title').value);
   fd.append('author', $('#author').value);
-  fd.append('voz', $('#voz').value);
+  fd.append('voz', VOZ);
   fd.append('preset', $('#preset').value);
   $('#producir').disabled = true;
   try {
