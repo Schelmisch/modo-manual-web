@@ -4,6 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0e1116">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Audiolibros">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icon-192.png">
 <title>Estudio de audiolibros</title>
 <style>
   :root { --bg:#0e1116; --card:#171b22; --line:#262c36; --fg:#e6e9ef; --mut:#9aa4b2;
@@ -11,13 +18,13 @@
   * { box-sizing:border-box; }
   body { margin:0; font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
          background:var(--bg); color:var(--fg); }
-  .wrap { max-width:640px; margin:0 auto; padding:20px 16px 80px; }
+  .wrap { max-width:640px; margin:0 auto; padding:20px 16px 90px; }
   h1 { font-size:1.4rem; margin:.2em 0 .1em; }
   .sub { color:var(--mut); margin:0 0 20px; }
   .card { background:var(--card); border:1px solid var(--line); border-radius:14px;
           padding:16px; margin-bottom:16px; }
   h2 { font-size:.85rem; text-transform:uppercase; letter-spacing:.06em;
-       color:var(--mut); margin:0 0 12px; }
+       color:var(--mut); margin:0 0 12px; display:flex; justify-content:space-between; align-items:center; }
   label { display:block; font-size:.85rem; color:var(--mut); margin:10px 0 4px; }
   input, select, button { font:inherit; width:100%; padding:11px 12px; border-radius:10px;
        border:1px solid var(--line); background:#0f1319; color:var(--fg); }
@@ -25,7 +32,12 @@
   button { background:var(--acc); color:#08111f; border:none; font-weight:600; cursor:pointer;
        margin-top:14px; }
   button.sec { background:transparent; color:var(--fg); border:1px solid var(--line); }
+  button.mini { width:auto; margin:0; padding:6px 12px; font-size:.85rem; }
   button:disabled { opacity:.5; cursor:not-allowed; }
+  a.btn { display:inline-block; text-decoration:none; padding:8px 12px; border-radius:9px;
+          font-size:.85rem; font-weight:600; }
+  a.dl { display:block; text-align:center; text-decoration:none; background:var(--ok);
+         color:#04140a; font-weight:700; padding:12px; border-radius:10px; margin-top:14px; }
   .row { display:flex; gap:10px; } .row > * { flex:1; }
   .muted { color:var(--mut); font-size:.85rem; }
   .voz { display:flex; align-items:center; gap:10px; font-weight:600; }
@@ -34,8 +46,6 @@
   .stats { display:flex; flex-wrap:wrap; gap:8px 16px; margin-top:10px; color:var(--mut);
            font-size:.9rem; font-variant-numeric:tabular-nums; }
   .stats b { color:var(--fg); font-weight:600; }
-  a.dl { display:block; text-align:center; text-decoration:none; background:var(--ok);
-         color:#04140a; font-weight:700; padding:12px; border-radius:10px; margin-top:14px; }
   .barra { height:10px; background:#0f1319; border-radius:6px; overflow:hidden; margin-top:10px; }
   .barra > i { display:block; height:100%; background:var(--acc); width:0; transition:width .5s; }
   .barra.anim > i { background:linear-gradient(90deg,var(--acc),#9ec5ff,var(--acc));
@@ -43,7 +53,16 @@
   @keyframes sh { to { background-position:-200% 0; } }
   pre { white-space:pre-wrap; font-size:.8rem; color:var(--err); background:#0f1319;
         border-radius:8px; padding:10px; max-height:200px; overflow:auto; }
-  details summary { cursor:pointer; color:var(--mut); font-size:.85rem; margin-top:10px; }
+  details summary { cursor:pointer; color:var(--acc); font-size:.85rem; margin-top:10px; }
+  .job { border-top:1px solid var(--line); padding:12px 0; }
+  .job:first-child { border-top:0; }
+  .job-t { font-weight:600; }
+  .job-m { color:var(--mut); font-size:.82rem; margin-top:2px; }
+  .job-a { display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; align-items:center; }
+  .trk { margin:10px 0; }
+  .trk .n { font-size:.82rem; color:var(--mut); margin-bottom:4px; }
+  audio { width:100%; height:36px; }
+  .empty { color:var(--mut); font-size:.88rem; }
 </style>
 </head>
 <body>
@@ -71,6 +90,7 @@
     <h2>Nuevo audiolibro</h2>
     <label>Manuscrito (.md)</label>
     <input id="manuscrito" type="file" accept=".md,.markdown,text/markdown">
+    <p class="muted" id="estim"></p>
     <div class="row">
       <div><label>Título</label><input id="title" placeholder="Modo manual"></div>
       <div><label>Autor</label><input id="author" placeholder="David…"></div>
@@ -97,39 +117,75 @@
     <button class="sec" id="limpiar" style="display:none">Producir otro</button>
     <details id="errbox" style="display:none"><summary>Ver detalle del error</summary><pre id="err"></pre></details>
   </div>
+
+  <div class="card">
+    <h2>Coste estimado · este mes</h2>
+    <p class="estado" id="costeVal">—</p>
+    <div class="barra"><i id="costeBar"></i></div>
+    <p class="muted" id="costeExtra"></p>
+    <p class="muted" style="opacity:.7">Estimación = tiempo de GPU × tarifa A10G (~1,10 $/h). Los primeros 30 $/mes de Modal son gratis. No es la factura exacta.</p>
+  </div>
+
+  <div class="card">
+    <h2>Historial <button class="sec mini" id="refrescar">Actualizar</button></h2>
+    <div id="hist"><p class="empty">Conéctate para ver tus audiolibros.</p></div>
+  </div>
 </div>
 
 <script>
 const $ = s => document.querySelector(s);
 const LS = localStorage;
-const VOZ = 'ref_tux_limpia.wav';       // voz única del sello
-const JOBKEY = 'job';                   // job persistido entre recargas
+const VOZ = 'ref_tux_limpia.wav';
+const JOBKEY = 'job';
+const RATE = 1.10;   // $/h de la GPU A10G (ajústalo si cambias de GPU en modal_app.py)
+const FREE = 30;     // crédito gratis de Modal al mes ($)
 let job = null; try { job = JSON.parse(LS.getItem(JOBKEY) || 'null'); } catch(e){}
 let pollTimer = null, tickTimer = null;
 
-// --- conexión (persistida) ---
 $('#endpoint').value = LS.getItem('endpoint') || 'https://davidamigosanchez--estudio-audiolibros-api.modal.run';
 $('#token').value    = LS.getItem('token') || '';
 const base  = () => ($('#endpoint').value || '').replace(/\/+$/,'');
 const token = () => $('#token').value.trim();
 const hAuth = () => ({ 'Authorization': 'Bearer ' + token() });
+const qtok  = () => 'token=' + encodeURIComponent(token());
 
 async function api(path, opts={}) {
   const r = await fetch(base()+path, opts);
   if (!r.ok) throw new Error((await r.text()) || ('HTTP '+r.status));
   return r;
 }
-
 function fmt(s){ s=Math.max(0,Math.round(s)); const m=Math.floor(s/60); return m+':'+String(s%60).padStart(2,'0'); }
+function fmtFecha(cr){ if(!cr) return ''; const d=new Date(cr*1000);
+  return d.toLocaleString('es-ES',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}); }
 
+// --- Conexión ---
 $('#guardar').onclick = async () => {
   LS.setItem('endpoint', $('#endpoint').value);
   LS.setItem('token', $('#token').value);
   $('#conx').textContent = 'Comprobando…';
-  try { await api('/salud'); $('#conx').textContent = '✅ Conectado.'; }
+  try { await api('/salud'); $('#conx').textContent = '✅ Conectado.'; cargarHist(); }
   catch(e) { $('#conx').textContent = '❌ ' + e.message; }
 };
 
+// --- Estimación al elegir el manuscrito ---
+$('#manuscrito').onchange = async () => {
+  const f = $('#manuscrito').files[0];
+  if (!f) { $('#estim').textContent=''; return; }
+  if (!$('#title').value) {
+    let n = f.name.replace(/\.(md|markdown)$/i,'').replace(/[—-]\s*manuscrito.*$/i,'').replace(/manuscrito/i,'').trim();
+    if (n) $('#title').value = n;
+  }
+  try {
+    const txt = await f.text();
+    const caps = Math.max(1, (txt.match(/^#\s+\S/gm)||[]).length - 1);  // 1ª # es portada
+    const words = (txt.match(/\S+/g)||[]).length;
+    const audioMin = Math.max(1, Math.round(words/150));
+    const prodMin = Math.round(audioMin*1.1 + caps*0.5 + 1);
+    $('#estim').innerHTML = `≈ <b>${caps}</b> pistas · ~<b>${audioMin}</b> min de audio · producción ~<b>${prodMin}</b> min <span style="opacity:.7">(aprox.)</span>`;
+  } catch(e){ $('#estim').textContent=''; }
+};
+
+// --- Producir ---
 $('#producir').onclick = async () => {
   const man = $('#manuscrito').files[0];
   if (!man)               return alert('Falta el manuscrito .md');
@@ -146,7 +202,7 @@ $('#producir').onclick = async () => {
     const { job_id } = await r.json();
     job = { id: job_id, title: $('#title').value, launchedAt: Date.now(), done: false };
     LS.setItem(JOBKEY, JSON.stringify(job));
-    arrancar();
+    arrancar(); cargarHist();
   } catch(e) { alert('Error: ' + e.message); }
   $('#producir').disabled = false;
 };
@@ -177,32 +233,31 @@ function arrancar(){
   poll();
 }
 
+// --- Reproductor: HTML de <audio> por pista ---
+function playerHTML(jobId, archivos){
+  if (!archivos || !archivos.length) return '';
+  return archivos.map(n =>
+    `<div class="trk"><div class="n">${n}</div>`+
+    `<audio controls preload="none" src="${base()}/pista/${jobId}/${encodeURIComponent(n)}?${qtok()}"></audio></div>`
+  ).join('');
+}
+
 function render(st){
   const [txt, basePct] = ETAPAS[st.estado] || [st.estado, 50];
   $('#estado').textContent = txt;
   const producing = st.estado === 'produciendo';
   $('#barraBox').classList.toggle('anim', producing || st.estado==='guion' || st.estado==='masterizando');
-
-  // barra
   let pct = basePct;
-  if (producing && st.total) pct = 14 + Math.round((st.hechas/st.total)*80);   // 14→94%
+  if (producing && st.total) pct = 14 + Math.round((st.hechas/st.total)*80);
   if (pct == null) pct = 40;
   $('#barra').style.width = pct + '%';
-
-  // pistas
   if (st.total) {
     $('#pistas').innerHTML = (st.estado==='listo')
       ? `<b>${st.total}</b> pistas`
       : `Capítulo <b>${Math.min(st.hechas+1, st.total)}</b> de <b>${st.total}</b>`;
   } else { $('#pistas').textContent = ''; }
-
-  // ritmo por capítulo
   $('#porcap').innerHTML = st.seg_por_pista ? `≈ <b>${fmt(st.seg_por_pista)}</b> / capítulo` : '';
-
-  // ETA (solo mientras produce)
   $('#eta').innerHTML = (producing && st.eta_seg>0) ? `faltan ~<b>${fmt(st.eta_seg)}</b>` : '';
-
-  // tiempo final (congelado) cuando termina
   if (st.estado==='listo' && st.tiempo_total_seg!=null)
     $('#tiempo').innerHTML = `⏱ <b>${fmt(st.tiempo_total_seg)}</b> total`;
 }
@@ -219,19 +274,71 @@ async function poll(){
       $('#limpiar').style.display = 'block';
       if (st.estado === 'listo') {
         $('#descarga').innerHTML =
-          `<a class="dl" href="${base()}/descargar/${job.id}?token=${encodeURIComponent(token())}">⬇ Descargar audiolibro (.zip)</a>`;
+          `<a class="dl" href="${base()}/descargar/${job.id}?${qtok()}">⬇ Descargar audiolibro (.zip)</a>`+
+          `<details><summary>▶ Escuchar en la web</summary>${playerHTML(job.id, st.archivos)}</details>`;
       } else {
         $('#errbox').style.display = 'block';
         $('#err').textContent = st.error || 'desconocido';
       }
+      cargarHist();
       return;
     }
   } catch(e) { /* reintenta */ }
   pollTimer = setTimeout(poll, 8000);
 }
 
-// --- reengancha un job en curso al abrir/recargar ---
+// --- Coste estimado del mes en curso ---
+function pintarCoste(items){
+  const now = new Date();
+  let sec = 0, n = 0;
+  items.forEach(t => {
+    if (!t.creado || !t.tiempo_total_seg) return;
+    const d = new Date(t.creado*1000);
+    if (d.getMonth()===now.getMonth() && d.getFullYear()===now.getFullYear()) { sec += t.tiempo_total_seg; n++; }
+  });
+  const coste = sec/3600*RATE;
+  $('#costeVal').innerHTML = `<b>${coste.toFixed(2)} $</b> <span class="muted">de ${FREE} $ gratis · ${n} libro${n===1?'':'s'}</span>`;
+  const bar = $('#costeBar');
+  bar.style.width = Math.min(100, coste/FREE*100) + '%';
+  bar.style.background = coste>FREE ? 'var(--err)' : 'var(--acc)';
+  $('#costeExtra').innerHTML = coste>FREE
+    ? `⚠ Te pasas del gratis: <b style="color:var(--err)">${(coste-FREE).toFixed(2)} $</b> de más este mes.`
+    : `Te quedan ~<b>${(FREE-coste).toFixed(2)} $</b> gratis este mes.`;
+}
+
+// --- Historial ---
+$('#refrescar').onclick = cargarHist;
+async function cargarHist(){
+  const cont = $('#hist');
+  if (!token()) { cont.innerHTML = '<p class="empty">Conéctate para ver tus audiolibros.</p>'; return; }
+  try {
+    const items = await (await api('/trabajos', { headers: hAuth() })).json();
+    pintarCoste(items);
+    if (!items.length) { cont.innerHTML = '<p class="empty">Aún no has producido ningún audiolibro.</p>'; return; }
+    cont.innerHTML = items.map(t => {
+      const ic = t.estado==='listo' ? '✅' : t.estado==='error' ? '❌' : '⏳';
+      const meta = [fmtFecha(t.creado), t.total ? t.total+' pistas' : t.estado].filter(Boolean).join(' · ');
+      let acc = '';
+      if (t.estado==='listo') {
+        acc = `<div class="job-a">`+
+              `<a class="btn" style="background:var(--ok);color:#04140a" href="${base()}/descargar/${t.job_id}?${qtok()}">⬇ .zip</a>`+
+              `</div>`+
+              `<details><summary>▶ Escuchar</summary>${playerHTML(t.job_id, t.archivos)}</details>`;
+      } else if (t.estado==='error') {
+        acc = `<div class="job-m" style="color:var(--err)">Falló</div>`;
+      }
+      return `<div class="job"><div class="job-t">${ic} ${t.title||'(sin título)'}</div>`+
+             `<div class="job-m">${meta}</div>${acc}</div>`;
+    }).join('');
+  } catch(e) { cont.innerHTML = `<p class="empty">No se pudo cargar: ${e.message}</p>`; }
+}
+
+// --- Arranque ---
 if (job) arrancar();
+if (token()) cargarHist();
+
+// --- PWA (instalar como app) ---
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script>
 </body>
 </html>
