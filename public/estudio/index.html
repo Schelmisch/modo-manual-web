@@ -342,6 +342,18 @@ window.cancelar = async (id) => {
   try { await api('/cancelar/'+id, { method:'POST', headers: hAuth() }); } catch(e){}
   refrescarTodo();
 };
+window.pausar = async (id) => {
+  try { await api('/pausar/'+id, { method:'POST', headers: hAuth() }); } catch(e){}
+  refrescarTodo();
+};
+window.reanudarPausa = async (id) => {
+  try { await api('/reanudar-pausa/'+id, { method:'POST', headers: hAuth() }); } catch(e){}
+  refrescarTodo();
+};
+window.hacerSiguiente = async (id) => {
+  try { await api('/siguiente/'+id, { method:'POST', headers: hAuth() }); } catch(e){}
+  refrescarTodo();
+};
 
 const ETAPAS = { encolado:['En cola…',6], guion:['Preparando el guion…',14],
                  produciendo:['Grabando capítulos…',null], masterizando:['Masterizando…',96],
@@ -378,7 +390,9 @@ function panelActivo(items){
   const enCola = items.filter(t => t.estado === 'en_cola').length;
   $('#tiempo').innerHTML = enCola ? `<span class="muted">+${enCola} en cola detrás</span>` : '';
   $('#descarga').innerHTML = ''; $('#errbox').style.display = 'none';
-  $('#acciones').innerHTML = `<button class="sec mini" onclick="cancelar('${act.job_id}')">✕ Cancelar</button>`;
+  $('#acciones').innerHTML =
+    `<button class="sec mini" onclick="pausar('${act.job_id}')">⏸ Pausar</button>`+
+    `<button class="sec mini" onclick="cancelar('${act.job_id}')">✕ Cancelar</button>`;
 }
 
 // --- Aviso al terminar: detecta transiciones a listo/error ---
@@ -445,8 +459,8 @@ function pintarHistorial(items){
   const visibles = items.filter(t => !t.oculto);
   if (!visibles.length) { cont.innerHTML = '<p class="empty">No hay audiolibros en el historial.</p>'; return; }
   cont.innerHTML = visibles.map(t => {
-    const ic = t.estado==='listo' ? '✅' : t.estado==='error' ? '❌' : t.estado==='cancelado' ? '⏹' : '⏳';
-    const LBL = { en_cola:'en cola', encolado:'en cola', guion:'preparando…', masterizando:'masterizando…', cancelado:'cancelado', error:'error', listo:'listo' };
+    const ic = t.estado==='listo' ? '✅' : t.estado==='error' ? '❌' : t.estado==='cancelado' ? '⏹' : t.estado==='pausado' ? '⏸' : '⏳';
+    const LBL = { en_cola:'en cola', encolado:'en cola', guion:'preparando…', masterizando:'masterizando…', pausado:'en pausa', cancelado:'cancelado', error:'error', listo:'listo' };
     const estadoTxt = (t.estado==='produciendo' && t.total) ? `grabando ${t.hechas}/${t.total}` : (LBL[t.estado]||t.estado);
     const coste = t.tiempo_total_seg ? `≈ ${(t.tiempo_total_seg/3600*RATE).toFixed(2)} $` : '';
     const meta = [fmtFecha(t.creado), t.total ? t.total+' pistas' : estadoTxt, coste].filter(Boolean).join(' · ');
@@ -459,6 +473,10 @@ function pintarHistorial(items){
             `<details><summary>▶ Escuchar</summary>${playerHTML(t.job_id, t.archivos)}</details>`;
     } else if (t.estado==='error' || t.estado==='cancelado') {
       acc = `<div class="job-a"><button class="mini" onclick="reintentarHist('${t.job_id}')">↻ Reintentar</button>${del}</div>`;
+    } else if (t.estado==='pausado') {
+      acc = `<div class="job-a"><button class="mini" onclick="reanudarPausa('${t.job_id}')">▶ Reanudar</button>${del}</div>`;
+    } else if (t.estado==='en_cola') {
+      acc = `<div class="job-a"><button class="mini sec" onclick="hacerSiguiente('${t.job_id}')">▲ Siguiente</button><button class="mini sec" onclick="pausar('${t.job_id}')">⏸ Pausar</button>${del}</div>`;
     }
     return `<div class="job"><div class="job-t">${ic} ${t.title||'(sin título)'}</div>`+
            `<div class="job-m">${meta}</div>${acc}</div>`;
