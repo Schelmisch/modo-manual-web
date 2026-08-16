@@ -59,10 +59,47 @@
   .job-t { font-weight:600; }
   .job-m { color:var(--mut); font-size:.82rem; margin-top:2px; }
   .job-a { display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; align-items:center; }
-  .trk { margin:10px 0; }
-  .trk .n { font-size:.82rem; color:var(--mut); margin-bottom:4px; }
-  audio { width:100%; height:36px; }
+  #au { display:none; }
   .empty { color:var(--mut); font-size:.88rem; }
+
+  /* --- Reproductor continuo --- */
+  body.conplayer .wrap { padding-bottom:calc(var(--plh,150px) + 26px); }
+  #player { position:fixed; left:0; right:0; bottom:0; z-index:50; display:none;
+            background:rgba(23,27,34,.97); border-top:1px solid var(--line);
+            backdrop-filter:saturate(1.4) blur(10px); }
+  #player.on { display:block; }
+  #player .inner { max-width:640px; margin:0 auto;
+                   padding:10px 16px calc(12px + env(safe-area-inset-bottom,0px)); }
+  .pl-head { display:flex; align-items:center; gap:6px; }
+  .pl-ctrl { display:flex; align-items:center; justify-content:center; gap:16px;
+             margin-top:4px; position:relative; }
+  .pl-ctrl #plVel { position:absolute; right:0; }
+  .pl-tit { flex:1; min-width:0; }
+  .pl-tit b { display:block; font-size:.9rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .pl-tit span { display:block; color:var(--mut); font-size:.78rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .pl-b { width:auto; margin:0; padding:6px; background:transparent; border:none; color:var(--fg);
+          font-size:1.05rem; line-height:1; cursor:pointer; flex:none; }
+  .pl-b:disabled { opacity:.35; }
+  .pl-b.play { background:var(--acc); color:#08111f; width:44px; height:44px; border-radius:50%;
+               font-size:1.1rem; display:flex; align-items:center; justify-content:center; }
+  .pl-b.txt { font-size:.78rem; font-weight:600; color:var(--mut); padding:6px 8px;
+              border:1px solid var(--line); border-radius:8px; }
+  .pl-seek { display:flex; align-items:center; gap:9px; margin-top:8px;
+             font-size:.72rem; color:var(--mut); font-variant-numeric:tabular-nums; }
+  #plRange { flex:1; width:auto; padding:0; height:5px; border:none; border-radius:4px;
+             background:#0f1319; -webkit-appearance:none; appearance:none; }
+  #plRange::-webkit-slider-thumb { -webkit-appearance:none; width:15px; height:15px; border-radius:50%;
+             background:var(--acc); border:none; }
+  #plRange::-moz-range-thumb { width:15px; height:15px; border-radius:50%; background:var(--acc); border:none; }
+  #plList { display:none; max-height:44vh; overflow:auto; margin-top:10px;
+            border-top:1px solid var(--line); padding-top:6px; }
+  #plList.on { display:block; }
+  .pl-trk { display:flex; gap:9px; align-items:center; padding:8px 4px; cursor:pointer;
+            border-radius:8px; font-size:.86rem; }
+  .pl-trk:hover { background:#0f1319; }
+  .pl-trk.cur { color:var(--acc); font-weight:600; }
+  .pl-trk .num { color:var(--mut); font-size:.78rem; min-width:1.6em; font-variant-numeric:tabular-nums; }
+  .pl-trk .nom { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 </style>
 </head>
 <body>
@@ -153,6 +190,31 @@
   <div class="card">
     <h2>Historial <button class="sec mini" id="refrescar">Actualizar</button></h2>
     <div id="hist"><p class="empty">Conéctate para ver tus audiolibros.</p></div>
+  </div>
+</div>
+
+<div id="player">
+  <div class="inner">
+    <div class="pl-head">
+      <div class="pl-tit"><b id="plCap">—</b><span id="plLib"></span></div>
+      <button class="pl-b" id="plToggle" title="Ver capítulos">☰</button>
+      <button class="pl-b" id="plClose" title="Cerrar el reproductor">✕</button>
+    </div>
+    <div class="pl-seek">
+      <span id="plT1">0:00</span>
+      <input type="range" id="plRange" min="0" max="1000" value="0" step="1">
+      <span id="plT2">0:00</span>
+    </div>
+    <div class="pl-ctrl">
+      <button class="pl-b" id="plPrev" title="Capítulo anterior">⏮</button>
+      <button class="pl-b" id="plBack" title="Atrás 15 s">↺</button>
+      <button class="pl-b play" id="plPlay" title="Reproducir / pausar">▶</button>
+      <button class="pl-b" id="plFwd" title="Adelante 30 s">↻</button>
+      <button class="pl-b" id="plNext" title="Capítulo siguiente">⏭</button>
+      <button class="pl-b txt" id="plVel" title="Velocidad">1×</button>
+    </div>
+    <div id="plList"></div>
+    <audio id="au" preload="auto"></audio>
   </div>
 </div>
 
@@ -360,13 +422,166 @@ const ETAPAS = { encolado:['En cola…',6], guion:['Preparando el guion…',14],
                  listo:['✅ ¡Listo!',100], error:['❌ Error',100], cancelado:['⏹ Cancelado',100] };
 const ACTIVOS = { produciendo:0, masterizando:1, guion:2, encolado:3 };
 
-function playerHTML(jobId, archivos){
-  if (!archivos || !archivos.length) return '';
-  return archivos.map(n =>
-    `<div class="trk"><div class="n">${n}</div>`+
-    `<audio controls preload="none" src="${base()}/pista/${jobId}/${encodeURIComponent(n)}?${qtok()}"></audio></div>`
-  ).join('');
+// ============ Reproductor continuo ============
+// Un solo <audio> para todo: encadena los capítulos sin tocar nada, recuerda
+// dónde lo dejaste y se maneja desde la pantalla de bloqueo del móvil.
+const au = $('#au');
+let ULTIMOS = [];                                   // último /trabajos pintado
+let PL = { id:null, title:'', tracks:[], i:0 };
+let pendSeek = 0, arrastrando = false, precargada = null;
+
+const capKey = n => n.replace(/\.(m4a|mp4|mp3|wav|flac)$/i,'').replace(/^\d+[\s._-]+/,'') || n;
+const posKey = id => 'pos:' + id;
+const urlPista = i => `${base()}/pista/${PL.id}/${encodeURIComponent(PL.tracks[i])}?${qtok()}`;
+
+function leerPos(id){ try { return JSON.parse(LS.getItem(posKey(id)) || 'null'); } catch(e) { return null; } }
+function guardarPos(){
+  if (!PL.id || !isFinite(au.currentTime)) return;
+  LS.setItem(posKey(PL.id), JSON.stringify({ i:PL.i, t:Math.floor(au.currentTime), n:PL.tracks.length }));
 }
+
+window.escuchar = (id) => {
+  const t = ULTIMOS.find(x => x.job_id === id);
+  if (!t || !t.archivos || !t.archivos.length) return alert('Este audiolibro todavía no tiene pistas.');
+  if (PL.id === id) { alternarPlay(); return; }         // ya cargado: play/pausa
+  PL = { id, title: t.title || 'Audiolibro', tracks: t.archivos.slice(), i:0 };
+  const p = leerPos(id);
+  let seek = 0;
+  if (p && p.n === PL.tracks.length && p.i < PL.tracks.length) { PL.i = p.i; seek = p.t || 0; }
+  document.body.classList.add('conplayer');
+  $('#player').classList.add('on');
+  au.playbackRate = Number(LS.getItem('vel') || 1);
+  $('#plVel').textContent = (au.playbackRate + '').replace('.',',') + '×';
+  cargarPista(PL.i, true, seek);
+  pintarLista();
+};
+
+function cargarPista(i, reproducir, seg){
+  if (i < 0 || i >= PL.tracks.length) return;
+  PL.i = i; pendSeek = seg || 0; precargada = null;
+  au.src = urlPista(i);
+  au.load();
+  if (reproducir) au.play().catch(()=>{});
+  pintarPlayer();
+}
+function alternarPlay(){ au.paused ? au.play().catch(()=>{}) : au.pause(); }
+function siguienteCap(auto){
+  if (PL.i + 1 < PL.tracks.length) { cargarPista(PL.i + 1, true, 0); return true; }
+  if (auto) { LS.removeItem(posKey(PL.id)); pintarPlayer(); }   // fin del libro
+  return false;
+}
+function anteriorCap(){
+  if (au.currentTime > 3) { au.currentTime = 0; return; }        // como en Spotify
+  if (PL.i > 0) cargarPista(PL.i - 1, true, 0);
+}
+function cerrarPlayer(){
+  guardarPos(); au.pause(); au.removeAttribute('src'); au.load();
+  PL = { id:null, title:'', tracks:[], i:0 };
+  $('#player').classList.remove('on'); $('#plList').classList.remove('on');
+  document.body.classList.remove('conplayer'); ajustarHueco();
+  pintarHistorial(ULTIMOS);
+}
+
+// el hueco del final de la página = alto real del reproductor (con o sin lista)
+function ajustarHueco(){
+  const h = $('#player').classList.contains('on') ? $('#player').offsetHeight : 0;
+  document.body.style.setProperty('--plh', h + 'px');
+}
+
+function pintarPlayer(){
+  if (!PL.id) return;
+  $('#plCap').textContent = `${PL.i + 1}. ${capKey(PL.tracks[PL.i])}`;
+  $('#plLib').textContent = `${PL.title} · capítulo ${PL.i + 1} de ${PL.tracks.length}`;
+  $('#plPlay').textContent = au.paused ? '▶' : '⏸';
+  $('#plPrev').disabled = (PL.i === 0 && au.currentTime <= 3);
+  $('#plNext').disabled = (PL.i + 1 >= PL.tracks.length);
+  pintarLista();
+  mediaSession();
+  ajustarHueco();
+}
+function pintarLista(){
+  const c = $('#plList');
+  if (!PL.id) { c.innerHTML = ''; return; }
+  c.innerHTML = PL.tracks.map((n, i) =>
+    `<div class="pl-trk${i === PL.i ? ' cur' : ''}" onclick="irACap(${i})">`+
+    `<span class="num">${i + 1}</span><span class="nom">${capKey(n)}</span>`+
+    `${i === PL.i ? '<span>🔊</span>' : ''}</div>`).join('');
+}
+window.irACap = (i) => { cargarPista(i, true, 0); };
+
+function mediaSession(){
+  if (!('mediaSession' in navigator)) return;
+  try {
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: capKey(PL.tracks[PL.i]), artist: PL.title, album: 'Modo manual',
+      artwork: [{ src:'icon-512.png', sizes:'512x512', type:'image/png' }]
+    });
+    const set = (a, f) => { try { navigator.mediaSession.setActionHandler(a, f); } catch(e){} };
+    set('play',  () => au.play());
+    set('pause', () => au.pause());
+    set('previoustrack', anteriorCap);
+    set('nexttrack', () => siguienteCap(false));
+    set('seekbackward', () => { au.currentTime = Math.max(0, au.currentTime - 15); });
+    set('seekforward',  () => { au.currentTime = Math.min(au.duration || 0, au.currentTime + 30); });
+  } catch(e){}
+}
+
+au.addEventListener('loadedmetadata', () => {
+  if (pendSeek) { try { au.currentTime = pendSeek; } catch(e){} pendSeek = 0; }
+  $('#plT2').textContent = fmtReloj(au.duration || 0);
+  pintarPlayer();
+});
+au.addEventListener('timeupdate', () => {
+  const d = au.duration || 0;
+  $('#plT1').textContent = fmtReloj(au.currentTime || 0);
+  if (!arrastrando && d) $('#plRange').value = Math.round((au.currentTime / d) * 1000);
+  // precarga el siguiente capítulo para que el salto sea instantáneo
+  if (d && d - au.currentTime < 25 && !precargada && PL.i + 1 < PL.tracks.length) {
+    precargada = new Audio(); precargada.preload = 'auto'; precargada.src = urlPista(PL.i + 1);
+  }
+});
+au.addEventListener('play',  pintarPlayer);
+au.addEventListener('pause', () => { pintarPlayer(); guardarPos(); });
+au.addEventListener('ended', () => { guardarPos(); if (!siguienteCap(true)) avisar('🎧 Fin de ' + PL.title); });
+au.addEventListener('error', () => {
+  if (!PL.id || !au.src) return;
+  $('#plLib').textContent = 'No se pudo cargar el capítulo. Comprueba la conexión.';
+});
+setInterval(() => { if (PL.id && !au.paused) guardarPos(); }, 5000);
+window.addEventListener('beforeunload', guardarPos);
+
+$('#plPlay').onclick   = alternarPlay;
+$('#plNext').onclick   = () => siguienteCap(false);
+$('#plPrev').onclick   = anteriorCap;
+$('#plBack').onclick   = () => { au.currentTime = Math.max(0, au.currentTime - 15); };
+$('#plFwd').onclick    = () => { au.currentTime = Math.min(au.duration || 0, au.currentTime + 30); };
+$('#plClose').onclick  = cerrarPlayer;
+$('#plToggle').onclick = () => {
+  $('#plList').classList.toggle('on');
+  if ($('#plList').classList.contains('on')) {
+    const cur = $('.pl-trk.cur'); if (cur) cur.scrollIntoView({ block:'center' });
+  }
+  ajustarHueco();
+};
+window.addEventListener('resize', ajustarHueco);
+$('#plVel').onclick = () => {
+  const V = [1, 1.25, 1.5, 1.75, 2, 0.9];
+  const v = V[(V.indexOf(au.playbackRate) + 1) % V.length];
+  au.playbackRate = v; LS.setItem('vel', v);
+  $('#plVel').textContent = (v + '').replace('.',',') + '×';
+};
+$('#plRange').oninput = () => { arrastrando = true; };
+$('#plRange').onchange = () => {
+  const d = au.duration || 0;
+  if (d) au.currentTime = (Number($('#plRange').value) / 1000) * d;
+  arrastrando = false;
+};
+document.addEventListener('keydown', e => {
+  if (!PL.id || /input|select|textarea/i.test(e.target.tagName)) return;
+  if (e.code === 'Space')      { e.preventDefault(); alternarPlay(); }
+  if (e.code === 'ArrowRight') au.currentTime = Math.min(au.duration || 0, au.currentTime + 30);
+  if (e.code === 'ArrowLeft')  au.currentTime = Math.max(0, au.currentTime - 15);
+});
 
 // --- Panel: sigue a la producción que corre AHORA (no a un trabajo fijo) ---
 function panelActivo(items){
@@ -446,6 +661,7 @@ $('#refCoste').onclick = cargarCosteReal;
 $('#refrescar').onclick = refrescarTodo;
 window.borrar = async (id) => {
   if (!confirm('¿Eliminar este audiolibro del historial?\n\nSe borra el audio para liberar espacio (no se podrá recuperar), pero el coste ya gastado seguirá contando en el total del mes.')) return;
+  if (PL.id === id) { cerrarPlayer(); LS.removeItem(posKey(id)); }
   try { await api('/ocultar/'+id, { method:'POST', headers: hAuth() }); refrescarTodo(); }
   catch(e) { alert('No se pudo eliminar: ' + e.message); }
 };
@@ -463,14 +679,20 @@ function pintarHistorial(items){
     const LBL = { en_cola:'en cola', encolado:'en cola', guion:'preparando…', masterizando:'masterizando…', pausado:'en pausa', cancelado:'cancelado', error:'error', listo:'listo' };
     const estadoTxt = (t.estado==='produciendo' && t.total) ? `grabando ${t.hechas}/${t.total}` : (LBL[t.estado]||t.estado);
     const coste = t.tiempo_total_seg ? `≈ ${(t.tiempo_total_seg/3600*RATE).toFixed(2)} $` : '';
-    const meta = [fmtFecha(t.creado), t.total ? t.total+' pistas' : estadoTxt, coste].filter(Boolean).join(' · ');
+    const pos = leerPos(t.job_id);
+    const marca = (t.estado==='listo' && pos && t.archivos && pos.n===t.archivos.length)
+                  ? `⏸ te quedaste en el capítulo ${pos.i+1}` : '';
+    const meta = [fmtFecha(t.creado), t.total ? t.total+' pistas' : estadoTxt, coste, marca].filter(Boolean).join(' · ');
     const del = `<button class="mini sec" onclick="borrar('${t.job_id}')">🗑 Eliminar</button>`;
     let acc = '';
     if (t.estado==='listo') {
+      const sonando = PL.id === t.job_id;
+      const lbl = sonando ? (au.paused ? '▶ Reanudar' : '⏸ Pausar')
+                          : (pos ? '▶ Seguir escuchando' : '▶ Escuchar seguido');
       acc = `<div class="job-a">`+
+            `<button class="mini" onclick="escuchar('${t.job_id}')">${lbl}</button>`+
             `<a class="btn" style="background:var(--ok);color:#04140a" href="${base()}/descargar/${t.job_id}?${qtok()}">⬇ .zip</a>`+
-            del + `</div>`+
-            `<details><summary>▶ Escuchar</summary>${playerHTML(t.job_id, t.archivos)}</details>`;
+            del + `</div>`;
     } else if (t.estado==='error' || t.estado==='cancelado') {
       acc = `<div class="job-a"><button class="mini" onclick="reintentarHist('${t.job_id}')">↻ Reintentar</button>${del}</div>`;
     } else if (t.estado==='pausado') {
@@ -489,7 +711,7 @@ async function refrescarTodo(){
   if (!token()) { $('#hist').innerHTML = '<p class="empty">Conéctate para ver tus audiolibros.</p>'; return; }
   try {
     const items = await (await api('/trabajos', { headers: hAuth() })).json();
-    histRetry = 0;
+    histRetry = 0; ULTIMOS = items;
     detectarAvisos(items);
     panelActivo(items);
     pintarHistorial(items);
