@@ -18,6 +18,7 @@ export type Libro = {
 export const serie1 = 'El cambio que viene';
 export const serie2 = 'Sin humo';
 export const serie3 = 'A ciencia cierta';
+export const serie4 = 'Con la cabeza fría';
 
 // Metadatos de cada serie (para las secciones de la web y sus páginas propias).
 export type Serie = { nombre: string; slug: string; descripcion: string };
@@ -39,6 +40,12 @@ export const series: Serie[] = [
     slug: 'a-ciencia-cierta',
     descripcion:
       'Salud sin milagros ni pánicos: comida, ejercicio, sueño y longevidad separando lo poco que de verdad mueve la aguja del humo que lo tapa, con dato y fuente y sin culpa. Un detector de humos para tu cuerpo. Los dos primeros, ya a la venta.',
+  },
+  {
+    nombre: serie4,
+    slug: 'con-la-cabeza-fria',
+    descripcion:
+      'La cabeza: atención, tiempo, hábitos y criterio. La misma vara de medir, aplicada a lo que pasa dentro de ti mientras dos industrias se pelean por tu atención. En preparación.',
   },
 ];
 
@@ -340,6 +347,22 @@ export const libros: Libro[] = [
       'Asociación no es causa, y el ratón no es un humano.',
       'Riesgo relativo frente a absoluto: el truco favorito del titular.',
       'Un detector de humos universal, para que lo veas tú sin que te lo digan.',
+    ],
+  },
+  {
+    slug: 'recuperar-la-cabeza',
+    titulo: 'Recuperar la cabeza',
+    subtitulo: 'Atención, móvil y el negocio de que te sientas roto',
+    serie: serie4,
+    numero: 1,
+    estado: 'proximamente',
+    portada: '/portadas/recuperar-la-cabeza.jpg',
+    sinopsis:
+      'Hay dos industrias viviendo de tu atención: una gana si miras la pantalla y otra gana si te sientes roto por haberla mirado. Este libro rastrea hasta su origen las cifras que todo el mundo repite sobre tu cabeza —los 23 minutos para reconcentrarte, los 8 segundos de atención, los 2.617 toques al día— y descubre que ninguna aguanta; y comprueba después que varios de los efectos científicos citados en su contra tampoco. Lo que queda en pie es pequeño, gratis y aburrido, y por eso nadie te lo cuenta.',
+    puntos: [
+      'Las cifras que todo el mundo repite sobre tu atención, rastreadas hasta su origen.',
+      'El «detox de dopamina» y la industria de la solución, por dentro.',
+      'Lo que sí funciona: diseñar la fricción, volver a leer, y poco más.',
     ],
   },
 ];
